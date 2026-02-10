@@ -299,100 +299,354 @@ const APP = {
 };
 
 // ============================================================
-// QUESTION BANK
+// DYNAMIC QUESTION GENERATOR
+// Combinatorial system: products x scenarios x twists x company context
+// Produces hundreds of unique questions per interview type
 // ============================================================
-const QUESTIONS = {
+
+const Q_PARTS = {
+  // ---- PRODUCT SENSE ----
   product_sense: {
-    bigtech: [
-      { q:"You're a PM at Google. Gmail's daily active users have plateaued. The VP asks you to propose a strategy to reignite growth. Walk me through your approach.", topics:["growth","strategy","metrics"], depth:"senior" },
-      { q:"Design a new product for Amazon that helps small businesses manage inventory. Start from the user problem.", topics:["0to1","customer_empathy","design"], depth:"mid" },
-      { q:"Facebook is considering launching a professional networking feature. How would you think about whether to build it?", topics:["strategy","tradeoffs","competitive"], depth:"senior" },
-      { q:"YouTube wants to increase watch time for educational content without cannibalizing entertainment engagement. How do you approach this?", topics:["tradeoffs","metrics","strategy"], depth:"mid" },
-      { q:"You're PM for Apple Maps. Google Maps dominates. What's your 2-year product strategy?", topics:["competitive","strategy","prioritization"], depth:"senior" },
-      { q:"Design a feature for Google Search that helps users with complex research tasks spanning multiple sessions.", topics:["0to1","design","customer_empathy"], depth:"mid" },
-      { q:"Instagram is losing teen users to TikTok. You have one quarter. What do you ship?", topics:["prioritization","tradeoffs","urgency"], depth:"mid" },
-    ],
-    fintech: [
-      { q:"You're PM at Stripe. Design a product that helps SaaS companies reduce involuntary churn from failed payments.", topics:["0to1","customer_empathy","metrics"], depth:"mid" },
-      { q:"A neobank wants to launch a savings product for gig workers. Walk me through the product design.", topics:["design","customer_empathy","regulation"], depth:"mid" },
-      { q:"You're at Square. Merchants are asking for lending products. How do you evaluate and design this?", topics:["strategy","risk","0to1"], depth:"senior" },
-      { q:"Design a credit scoring product for users with thin credit files in emerging markets.", topics:["0to1","customer_empathy","constraints"], depth:"senior" },
-    ],
-    startup: [
-      { q:"You're the first PM at a Series A startup building tools for remote teams. The founder wants to build everything. How do you decide what to build first?", topics:["prioritization","mvp","constraints"], depth:"mid" },
-      { q:"Your startup has 500 users and flat growth. The board wants a plan. What do you do in the next 30 days?", topics:["growth","urgency","metrics"], depth:"mid" },
-      { q:"You're building a marketplace for freelance designers. You have no supply and no demand. Solve the cold-start problem.", topics:["0to1","marketplace","strategy"], depth:"senior" },
-      { q:"A competitor just launched a feature your users have been requesting. Your team is 4 engineers. What's your move?", topics:["competitive","prioritization","constraints"], depth:"mid" },
-    ]
+    bigtech: {
+      products: ["Gmail","YouTube","Google Maps","Google Photos","Chrome","Android","Google Drive","Google Meet","Google Classroom","Google Pay","Apple Music","iMessage","WhatsApp","Instagram","Facebook Marketplace","Amazon Prime Video","Alexa","Kindle","LinkedIn","Spotify","Netflix","Uber","Airbnb","Slack","Zoom","Twitter/X","Reddit","Pinterest","Snapchat","Discord"],
+      scenarios: [
+        "DAU has plateaued for 2 quarters. Propose a strategy to reignite growth.",
+        "is losing users in the 18-24 age group. How would you approach this?",
+        "wants to expand into a new user segment it hasn't served before. Design the approach.",
+        "needs a 0-to-1 feature that differentiates it from competitors. What would you build and why?",
+        "has strong engagement but weak monetization. How would you close that gap?",
+        "users are complaining about a core workflow being too complex. Redesign it.",
+        "is considering entering an adjacent market. How do you evaluate whether to do it?",
+        "has a feature that 80% of users ignore. Should you kill it, redesign it, or double down?",
+        "needs to improve retention for users who signed up in the last 30 days. What's your plan?",
+        "wants to build a social or community layer. Design the product strategy.",
+        "is launching in a new international market with very different user behaviors. Adapt the product.",
+        "has a power user segment that generates 60% of content but only 5% of revenue. What do you do?",
+        "needs to balance creator experience with consumer experience. How do you prioritize?"
+      ],
+      twists: [
+        "","",
+        " Your main competitor just launched a similar initiative last week.",
+        " Budget has been cut by 40% due to company-wide cost reductions.",
+        " The CEO is personally invested in a different direction. How do you navigate this?",
+        " You have data showing the obvious solution doesn't work. What's your contrarian take?",
+        " You need to show measurable impact within 6 weeks."
+      ]
+    },
+    fintech: {
+      products: ["a neobank app","a payments platform","a lending product","a crypto exchange","a personal finance dashboard","a B2B invoicing tool","an expense management platform","a buy-now-pay-later product","a wealth management app","an insurance comparison platform","a cross-border remittance service","a merchant POS system","a payroll platform for SMBs"],
+      scenarios: [
+        "Design a new savings feature that drives daily engagement.",
+        "needs to onboard users who have never used digital banking before. Design the experience.",
+        "is seeing high drop-off at the KYC step. How would you fix this while maintaining compliance?",
+        "wants to launch a credit product for users with thin credit files. Walk me through the design.",
+        "is expanding from consumer to SMB. What's your product strategy?",
+        "has strong acquisition but users become dormant after 60 days. Diagnose and fix.",
+        "needs to differentiate from 5 competitors with nearly identical feature sets. What's your approach?",
+        "wants to build trust with users who are skeptical of digital finance. Design for trust.",
+        "is entering a market with strict new regulations coming in 6 months. How do you plan?",
+        "wants to reduce fraud without adding friction to the user experience. Design the trade-offs."
+      ],
+      twists: [
+        "","",
+        " A regulatory change just made your core approach potentially non-compliant.",
+        " Your largest partner bank just ended their contract.",
+        " A security breach at a competitor has made users across the industry nervous."
+      ]
+    },
+    startup: {
+      products: ["a remote team collaboration tool","a marketplace for freelancers","an AI writing assistant","a health & wellness app","a developer tools platform","an e-commerce enablement tool","a PropTech rental platform","an EdTech tutoring marketplace","a food delivery for rural areas","a fleet management SaaS","a creator monetization platform","a climate tech carbon tracker","a mental health therapy platform"],
+      scenarios: [
+        "You have 500 users and flat growth. The board wants a plan. What do you do in the next 30 days?",
+        "just raised Series A. The founder wants to build 10 features. You can only ship 2. How do you decide?",
+        "has no supply and no demand. Solve the cold-start problem.",
+        "is losing a feature war to a well-funded competitor. Your team is 5 people. What's your strategy?",
+        "has strong product-market fit signals but can't figure out monetization. What do you propose?",
+        "users love the product but won't pay. Free-to-paid conversion is 0.5%. Fix it.",
+        "has a vocal minority of users requesting enterprise features. Should you pivot?",
+        "needs to decide between going deep in one vertical or expanding horizontally. Frame the decision.",
+        "just lost its biggest customer representing 30% of revenue. What do you do this week?",
+        "has 6 months of runway. Define your product strategy to reach the next funding milestone."
+      ],
+      twists: [
+        "","",
+        " Your co-founder disagrees with your direction.",
+        " Your only designer just left the company.",
+        " A YC startup just launched with an identical value proposition."
+      ]
+    }
   },
+
+  // ---- METRICS ----
   metrics: {
-    bigtech: [
-      { q:"You're PM for YouTube Shorts. Define the success metrics framework for this product.", topics:["metrics_framework","north_star","input_output"], depth:"mid" },
-      { q:"Google Search ad click-through rate dropped 8% week over week. Diagnose this.", topics:["metric_diagnosis","root_cause","data"], depth:"mid" },
-      { q:"You're running an A/B test on a new Facebook News Feed algorithm. Engagement is up 12% but time-to-first-share is down. Interpret these results.", topics:["experimentation","tradeoffs","interpretation"], depth:"senior" },
-      { q:"Define the metrics framework for a new Google Workspace collaboration feature. What's your north star?", topics:["metrics_framework","north_star"], depth:"mid" },
-      { q:"Amazon Prime subscription renewals dropped 5% this quarter. Walk me through your investigation.", topics:["metric_diagnosis","root_cause"], depth:"mid" },
-    ],
-    fintech: [
-      { q:"You're PM at a payments company. Define success metrics for a new instant transfer feature.", topics:["metrics_framework","fintech_specific"], depth:"mid" },
-      { q:"Your lending product's default rate spiked. Revenue is up. Is this good or bad? How do you investigate?", topics:["metric_diagnosis","risk","tradeoffs"], depth:"senior" },
-      { q:"Design an experiment to test whether adding a savings round-up feature increases user retention.", topics:["experimentation","design","metrics"], depth:"mid" },
-    ],
-    startup: [
-      { q:"Your SaaS product has high sign-ups but terrible activation. Define the metrics and your plan.", topics:["activation","funnel","metrics_framework"], depth:"mid" },
-      { q:"You launched a new feature last week. DAU went up but NPS went down. What's happening?", topics:["metric_diagnosis","tradeoffs","interpretation"], depth:"mid" },
-      { q:"Your startup's burn rate gives you 8 months of runway. Define the metrics that matter most right now.", topics:["metrics_framework","constraints","prioritization"], depth:"senior" },
-    ]
+    bigtech: {
+      stems: [
+        "You're PM for {product}. Define the complete success metrics framework.",
+        "{product}'s {metric} dropped {pct}% week over week. Diagnose this.",
+        "You're running an A/B test on {product}. {metric_a} is up {pct}% but {metric_b} is down. Interpret these results and decide what to ship.",
+        "Define the north star metric for {product}'s new {feature}. What are the input metrics that drive it?",
+        "{product} launched a new feature last month. How would you design the experiment to measure its impact?",
+        "The VP wants to increase {metric} for {product} by 20% this quarter. Build the metrics tree and identify levers.",
+        "Two teams at the company are optimizing for conflicting metrics on {product}. How do you resolve this?",
+        "You suspect {product}'s reported {metric} is inflated by bot activity. How do you investigate?",
+        "{product} has great engagement metrics but user satisfaction surveys show declining happiness. Explain the disconnect.",
+        "Design a metrics framework that balances short-term engagement with long-term user health for {product}."
+      ],
+      products: ["YouTube Shorts","Google Search","Gmail","Google Maps","Chrome","Facebook News Feed","Instagram Reels","WhatsApp Business","Amazon Prime","Spotify","Netflix","Uber","Airbnb","LinkedIn Feed","Twitter/X"],
+      metrics: ["click-through rate","daily active users","session duration","retention rate","conversion rate","revenue per user","ad impressions","time-to-first-action","7-day retention","NPS score"],
+      metrics_b: ["time-to-first-share","new user activation","content diversity","creator satisfaction","page load time","customer support tickets"],
+      features: ["AI-powered recommendation engine","social sharing feature","personalization layer","premium subscription tier","creator tools suite","search redesign"],
+      pcts: ["5","8","12","15","20","3"]
+    },
+    fintech: {
+      stems: [
+        "You're PM at a payments company. Define success metrics for a new {feature}.",
+        "Your lending product's default rate spiked to {pct}%. Revenue is up. Is this good or bad?",
+        "Design an experiment to test whether {feature} increases user retention.",
+        "Your {metric} dropped {pct}% after a product change. How do you investigate?",
+        "Define the metrics framework for a new {feature} targeting {segment}.",
+        "You need to balance fraud prevention metrics against user experience metrics. Frame the trade-offs.",
+        "Your funnel shows 70% drop-off between sign-up and first transaction. Break down the metrics to diagnose why.",
+        "A competitor claims 3x your {metric}. How do you validate their claim and benchmark yourself?"
+      ],
+      features: ["instant transfer feature","savings round-up tool","credit score monitoring","merchant analytics dashboard","recurring payments system","split payments feature","budgeting assistant","cashback rewards program"],
+      metrics: ["transaction volume","activation rate","monthly transacting users","cost per acquisition","net revenue retention","fraud rate"],
+      segments: ["Gen Z users","small business owners","gig workers","first-time investors","unbanked populations","high-net-worth individuals"],
+      pcts: ["5","8","12","15","3","25"]
+    },
+    startup: {
+      stems: [
+        "Your SaaS product has high sign-ups but {pct}% activation rate. Define the metrics and your plan.",
+        "You launched a new feature. DAU went up but NPS went down. What's happening?",
+        "Your startup has {months} months of runway. Define the metrics that matter most right now.",
+        "Your {metric} is great but {metric_b} is terrible. Which do you optimize and why?",
+        "Investors are asking for proof of product-market fit. What metrics do you show them?",
+        "Your free trial converts at {pct}%. Industry average is 15%. Diagnose and propose a fix.",
+        "You're choosing between two features — one improves {metric}, the other improves {metric_b}. Frame the decision with data.",
+        "Your cohort analysis shows each successive month's users retain worse than the last. What's going on?"
+      ],
+      metrics: ["activation rate","weekly retention","viral coefficient","time-to-value","expansion revenue","feature adoption rate"],
+      metrics_b: ["NPS","churn rate","support ticket volume","time-to-first-value","referral rate","payback period"],
+      months: ["6","8","10","12","18"],
+      pcts: ["5","8","12","3","2","20"]
+    }
   },
+
+  // ---- EXECUTION ----
   execution: {
-    bigtech: [
-      { q:"You're PM for Google Photos. Leadership wants AI-powered photo editing shipped in Q3. You have a team of 8 engineers. Build me the roadmap.", topics:["roadmap","dependencies","sequencing"], depth:"mid" },
-      { q:"Requirements for your project just changed mid-sprint. Your engineering lead is frustrated. How do you handle this?", topics:["ambiguity","stakeholder","communication"], depth:"mid" },
-      { q:"You need to launch a new feature across iOS, Android, and Web simultaneously. How do you coordinate and what's your MVP?", topics:["mvp","coordination","sequencing"], depth:"mid" },
-      { q:"Your team has been working on a feature for 3 months. Early data shows it's not moving the needle. What do you do?", topics:["decision_making","sunk_cost","pivoting"], depth:"senior" },
-    ],
-    fintech: [
-      { q:"You're launching a new payment method in a regulated market. Walk me through your execution plan.", topics:["regulation","dependencies","risk"], depth:"senior" },
-      { q:"Your compliance team flagged a blocker 2 weeks before launch. How do you proceed?", topics:["ambiguity","stakeholder","urgency"], depth:"mid" },
-    ],
-    startup: [
-      { q:"You have 3 engineers, a designer who's part-time, and a massive backlog. Prioritize and plan the next 6 weeks.", topics:["prioritization","constraints","mvp"], depth:"mid" },
-      { q:"A key engineer just quit. You have a launch commitment in 4 weeks. What's your plan?", topics:["crisis","constraints","replanning"], depth:"mid" },
-    ]
+    bigtech: {
+      stems: [
+        "You're PM for {product}. Leadership wants {feature} shipped in Q3. You have {team_size} engineers. Build me the roadmap.",
+        "Requirements for your {product} project just changed mid-sprint. Your engineering lead is frustrated. How do you handle this?",
+        "You need to launch {feature} across iOS, Android, and Web simultaneously for {product}. How do you coordinate and what's your MVP?",
+        "Your team has been working on {feature} for {product} for 3 months. Early data shows it's not moving the needle. What do you do?",
+        "You're inheriting a project for {product} that's 2 months behind schedule. The previous PM left. Assess and course-correct.",
+        "Three teams depend on your {product} platform work. One of them has a hard launch deadline. How do you sequence?",
+        "Your VP wants you to commit to a date for {feature}. Engineering says they need 2 more weeks of scoping. What do you do?",
+        "A P0 bug in {product} is affecting 5% of users. You're mid-launch for {feature}. How do you allocate the team?"
+      ],
+      products: ["Google Photos","YouTube Studio","Google Workspace","Gmail","Chrome","Google Maps","Android","Google Pay","Cloud Console","Google Ads"],
+      features: ["AI-powered editing tools","real-time collaboration","a privacy dashboard","a new onboarding flow","performance optimization","an enterprise admin console","a ML-powered recommendation system","an accessibility overhaul"],
+      team_sizes: ["6","8","12","15","4"]
+    },
+    fintech: {
+      stems: [
+        "You're launching a new {feature} in a regulated market. Walk me through your execution plan.",
+        "Your compliance team flagged a blocker {time} before launch of {feature}. How do you proceed?",
+        "You need to migrate {users} users to a new {feature} without any downtime or transaction failures. Plan this.",
+        "A partner bank is deprecating an API you depend on in 90 days. How do you manage the transition?",
+        "You need to ship {feature} while maintaining PCI DSS compliance. What does the execution plan look like?",
+        "Your {feature} launch requires coordination between product, engineering, legal, compliance, and customer support. How do you run this?"
+      ],
+      features: ["payment method","lending product","KYC flow","fraud detection system","cross-border transfer","real-time settlement system","open banking integration"],
+      times: ["2 weeks","3 days","1 month","6 weeks"],
+      users: ["50,000","200,000","1 million","5 million"]
+    },
+    startup: {
+      stems: [
+        "You have {team_size} engineers, a part-time designer, and a massive backlog. Prioritize and plan the next 6 weeks.",
+        "A key engineer just quit. You have a launch commitment in {weeks} weeks. What's your plan?",
+        "The founder wants to pivot the product based on one customer conversation. How do you manage this?",
+        "You're shipping v1 of {product}. Define the MVP — what's in and what's out?",
+        "You have a critical bug, a demo for a potential investor next week, and 2 features promised to your biggest customer. Sequence this.",
+        "Your product launched but adoption is slow. You need to iterate quickly with a {team_size}-person team. What's your process?",
+        "Technical debt is slowing your team to a crawl. The CEO wants features. How do you make the case for paying down debt?"
+      ],
+      products: ["an AI scheduling assistant","a vertical SaaS for dentists","a social commerce platform","a developer API","a logistics optimization tool","a telemedicine app"],
+      team_sizes: ["3","4","5","2"],
+      weeks: ["3","4","6","8"]
+    }
   },
+
+  // ---- BEHAVIORAL ----
   behavioral: {
-    bigtech: [
-      { q:"Tell me about a time you had to make a product decision with incomplete data. What did you do?", topics:["ambiguity","decision_making","ownership"], depth:"mid" },
-      { q:"Describe a situation where you disagreed with your engineering lead on technical approach. How did you resolve it?", topics:["conflict","influence","collaboration"], depth:"mid" },
-      { q:"Tell me about a product you launched that failed. What did you learn?", topics:["failure","ownership","learning"], depth:"mid" },
-      { q:"Give me an example of when you had to influence a senior stakeholder who was resistant to your idea.", topics:["influence","communication","leadership"], depth:"senior" },
-      { q:"Describe a time you had to make an ethical trade-off in a product decision.", topics:["ethics","judgment","values"], depth:"senior" },
+    all: [
+      "Tell me about a time you had to make a product decision with incomplete data. What did you do and what was the outcome?",
+      "Describe a situation where you disagreed with your engineering lead on a technical approach. How did you resolve it?",
+      "Tell me about a product you launched that failed or underperformed. What did you learn?",
+      "Give me an example of when you had to influence a senior stakeholder who was resistant to your idea.",
+      "Describe a time you had to make an ethical trade-off in a product decision.",
+      "Tell me about a time you had to kill a feature or project that the team was emotionally invested in.",
+      "Describe a situation where you had to balance speed with quality. What did you choose and why?",
+      "Tell me about a time you received negative feedback on your product strategy. How did you handle it?",
+      "Describe a time when data told you one thing but your intuition said another. What did you do?",
+      "Tell me about a time you had to work with a difficult cross-functional partner. How did you manage the relationship?",
+      "Give me an example of when you had to make a decision that was unpopular. How did you build alignment?",
+      "Describe a situation where a project's scope kept expanding. How did you manage it?",
+      "Tell me about a time you had to say no to a customer or important stakeholder. How did you approach it?",
+      "Describe your biggest product mistake. Walk me through what happened and what you'd do differently.",
+      "Tell me about a time you had to rally a demoralized team. What was the situation and what did you do?",
+      "Describe a time when you had to make a fast decision under pressure with significant consequences.",
+      "Tell me about a time you championed a user need that the business didn't initially see as valuable.",
+      "Give me an example of when you identified a risk no one else saw. How did you communicate it?",
+      "Describe a time you had to onboard to a complex product area quickly. How did you ramp up?",
+      "Tell me about a situation where two of your stakeholders had conflicting priorities. How did you navigate it?",
+      "Describe a time when you had to change your product strategy based on new information mid-execution.",
+      "Tell me about a time you successfully shipped something with a team that had never worked together before.",
+      "Give me an example of when you had to prioritize ruthlessly. What framework did you use?",
+      "Describe a time when you had to convince your team to take a bet on something unproven.",
+      "Tell me about a time you built something users didn't end up wanting. What did you miss?"
     ],
-    fintech: [
-      { q:"Tell me about a time you balanced user experience with regulatory requirements.", topics:["tradeoffs","regulation","judgment"], depth:"mid" },
-      { q:"Describe a situation where a compliance requirement conflicted with your product vision.", topics:["conflict","ethics","stakeholder"], depth:"senior" },
+    fintech_extra: [
+      "Tell me about a time you balanced user experience with regulatory requirements. What was the trade-off?",
+      "Describe a situation where a compliance requirement conflicted with your product vision. How did you resolve it?",
+      "Tell me about a time you had to make a product decision involving financial risk to users.",
+      "Describe a time you navigated a product launch that involved multiple regulatory approvals."
     ],
-    startup: [
-      { q:"Tell me about a time you had to do something completely outside your job description to make a product succeed.", topics:["ownership","scrappiness","adaptability"], depth:"mid" },
-      { q:"Describe a time you had to say no to the CEO or founder. How did you approach it?", topics:["influence","judgment","communication"], depth:"senior" },
+    startup_extra: [
+      "Tell me about a time you had to do something completely outside your job description to make a product succeed.",
+      "Describe a time you had to say no to the CEO or founder. How did you approach it?",
+      "Tell me about a time you had to ship with embarrassingly limited resources. What did you cut?",
+      "Describe a situation where you had to wear multiple hats simultaneously. How did you manage?",
+      "Tell me about a time you had to make a pivotal decision with almost no data."
     ]
   },
+
+  // ---- TECHNICAL ----
   technical: {
-    bigtech: [
-      { q:"You're working with engineers on a real-time notification system. They propose two architectures: polling vs. WebSockets. How do you evaluate the trade-offs as a PM?", topics:["system_design","tradeoffs","eng_collaboration"], depth:"mid" },
-      { q:"Your service has a 99.9% SLA but you want to add a feature that could impact latency. How do you work with the engineering team on this?", topics:["reliability","tradeoffs","collaboration"], depth:"senior" },
-      { q:"Your product needs to integrate with a third-party API that has rate limits and occasional downtime. How do you factor this into your product decisions?", topics:["api","constraints","planning"], depth:"mid" },
-      { q:"Engineers say the feature you want will take 6 months due to technical debt. How do you approach this conversation?", topics:["tech_debt","negotiation","prioritization"], depth:"mid" },
-    ],
-    fintech: [
-      { q:"Your payments system needs to handle 10x traffic during Black Friday. How do you work with engineering to prepare?", topics:["scalability","planning","collaboration"], depth:"mid" },
-    ],
-    startup: [
-      { q:"Your startup needs to decide between building on a third-party platform vs. building infrastructure in-house. Frame this decision.", topics:["build_buy","tradeoffs","strategy"], depth:"senior" },
-      { q:"Your CTO wants to rewrite the backend in a new language. Product roadmap will slip 2 months. How do you evaluate this?", topics:["tech_debt","tradeoffs","stakeholder"], depth:"senior" },
-    ]
+    bigtech: {
+      stems: [
+        "Engineers propose two architectures for {system}: {option_a} vs. {option_b}. How do you evaluate the trade-offs as a PM?",
+        "Your service has a 99.9% SLA but you want to add {feature} that could impact latency. How do you work with engineering?",
+        "Your product needs to integrate with a third-party API that has rate limits and occasional downtime. How do you factor this in?",
+        "Engineers say {feature} will take 6 months due to technical debt. How do you approach this conversation?",
+        "Your team wants to migrate from {option_a} to {option_b}. It'll improve long-term velocity but stall features for a quarter. Evaluate.",
+        "A microservice your product depends on is owned by another team and is unreliable. What do you do as PM?",
+        "You need to design a feature that requires real-time data processing at scale for {product}. How do you scope this with engineering?",
+        "Your product collects sensitive user data. Engineering proposes two data storage approaches with different privacy trade-offs. How do you decide?"
+      ],
+      systems: ["a real-time notification system","a content recommendation engine","a search indexing pipeline","a user authentication system","a payments processing system","a file sync service","a messaging system"],
+      option_as: ["polling","monolith","SQL database","server-side rendering","REST API","on-premise","synchronous processing","single-region deployment"],
+      option_bs: ["WebSockets","microservices","NoSQL","client-side rendering","GraphQL","cloud-native","async event-driven","multi-region with eventual consistency"],
+      features: ["real-time collaboration","end-to-end encryption","offline mode","AI-powered search","video processing","audit logging"],
+      products: ["Google Docs","YouTube","Gmail","Google Maps","Chrome","Slack","Discord"]
+    },
+    fintech: {
+      stems: [
+        "Your payments system needs to handle {mult}x traffic during {event}. How do you work with engineering to prepare?",
+        "You need to implement {feature} while maintaining PCI compliance. What trade-offs do you see?",
+        "Engineering wants to move to {option_b} from {option_a} for the transaction system. Evaluate as a PM.",
+        "A critical API dependency for {feature} has 99.5% uptime. Your product needs 99.99%. Bridge the gap.",
+        "You need to add real-time fraud detection without adding latency to the payment flow. How do you scope this?"
+      ],
+      mults: ["10","50","100"],
+      events: ["Black Friday","month-end payroll","tax deadline","a viral marketing campaign"],
+      features: ["real-time settlement","multi-currency support","recurring payments","instant refunds","transaction dispute resolution"],
+      option_as: ["batch processing","a monolithic ledger","shared database"],
+      option_bs: ["stream processing","event-sourced microservices","database-per-service"]
+    },
+    startup: {
+      stems: [
+        "Your startup needs to decide between building {option_a} vs. {option_b}. Frame this decision.",
+        "Your CTO wants to rewrite the backend in a new language. Product roadmap will slip {weeks} weeks. How do you evaluate?",
+        "You're at a 10-person startup. Should you build your own {system} or use a third-party service?",
+        "Your product is hitting scaling issues at {users} users. Engineering proposes a major refactor. Evaluate the timing.",
+        "You need to ship {feature} but your tech stack wasn't designed for it. What's the right conversation to have with engineering?"
+      ],
+      option_as: ["building on a third-party platform","using an off-the-shelf solution","a managed service"],
+      option_bs: ["building infrastructure in-house","a custom-built system","self-hosted open source"],
+      systems: ["analytics pipeline","authentication system","notification service","search engine","payment processing","CI/CD pipeline"],
+      features: ["real-time features","offline support","mobile apps","API for partners","multi-tenancy"],
+      users: ["10,000","50,000","100,000","500,000"],
+      weeks: ["6","8","10","12"]
+    }
   }
 };
+
+// Dynamic question generator
+function generateQuestion(type, company, seniority) {
+  const seniorityDepth = { associate:'mid', pm:'mid', senior:'senior', group:'senior' };
+  const depth = seniorityDepth[seniority] || 'mid';
+
+  if (type === 'behavioral') {
+    return generateBehavioral(company, depth);
+  }
+
+  const bank = Q_PARTS[type];
+  if (!bank) return null;
+  const companyBank = bank[company];
+  if (!companyBank) return null;
+
+  if (companyBank.stems) {
+    return generateFromStems(companyBank, type, depth);
+  } else if (companyBank.products) {
+    return generateProductSense(companyBank, type, depth);
+  }
+  return null;
+}
+
+function generateProductSense(bank, type, depth) {
+  const product = pickRandom(bank.products);
+  const scenario = pickRandom(bank.scenarios);
+  const twist = pickRandom(bank.twists);
+  const q = `You're building ${product}. ${product} ${scenario}${twist}`;
+  return { q, topics:[type], depth };
+}
+
+function generateFromStems(bank, type, depth) {
+  const stem = pickRandom(bank.stems);
+  let q = stem;
+
+  // Replace all template variables
+  const replacements = {
+    '{product}': bank.products,
+    '{feature}': bank.features,
+    '{metric}': bank.metrics,
+    '{metric_a}': bank.metrics,
+    '{metric_b}': bank.metrics_b || bank.metrics,
+    '{pct}': bank.pcts,
+    '{team_size}': bank.team_sizes,
+    '{system}': bank.systems,
+    '{option_a}': bank.option_as,
+    '{option_b}': bank.option_bs,
+    '{segment}': bank.segments,
+    '{months}': bank.months,
+    '{weeks}': bank.weeks,
+    '{time}': bank.times,
+    '{users}': bank.users,
+    '{mult}': bank.mults,
+    '{event}': bank.events,
+  };
+
+  Object.entries(replacements).forEach(([key, arr]) => {
+    if (arr && q.includes(key)) {
+      q = q.replace(key, pickRandom(arr));
+    }
+  });
+
+  return { q, topics:[type], depth };
+}
+
+function generateBehavioral(company, depth) {
+  let pool = [...Q_PARTS.behavioral.all];
+  if (company === 'fintech') pool = pool.concat(Q_PARTS.behavioral.fintech_extra);
+  if (company === 'startup') pool = pool.concat(Q_PARTS.behavioral.startup_extra);
+  const q = pickRandom(pool);
+  return { q, topics:['behavioral'], depth };
+}
+
+// Keep static bank as fallback but it's no longer the primary source
+const QUESTIONS = null;
 
 // ============================================================
 // FOLLOW-UP & PUSHBACK TEMPLATES
@@ -782,37 +1036,29 @@ function updateTimerDisplay() {
   document.getElementById('timer').textContent = `${m}:${s.toString().padStart(2,'0')}`;
 }
 
-function getAvailableQuestions() {
+function pickQuestion() {
   const type = APP.config.type;
   const company = APP.config.company;
+  const seniority = APP.config.seniority;
 
-  if (type === 'mixed') {
-    const allTypes = ['product_sense','metrics','execution','behavioral','technical'];
-    let pool = [];
-    allTypes.forEach(t => {
-      if (QUESTIONS[t] && QUESTIONS[t][company]) pool = pool.concat(QUESTIONS[t][company].map(q => ({...q, _type:t})));
-    });
-    return pool;
+  // For mixed interviews, rotate through types
+  const mixedTypes = ['product_sense','metrics','execution','behavioral','technical'];
+  const effectiveType = (type === 'mixed')
+    ? mixedTypes[APP.state.questionIndex % mixedTypes.length]
+    : type;
+
+  // Generate a fresh unique question (retry up to 10 times to avoid duplicates)
+  for (let i = 0; i < 10; i++) {
+    const q = generateQuestion(effectiveType, company, seniority);
+    if (q && !APP.state.usedQuestionKeys.has(q.q)) {
+      APP.state.usedQuestionKeys.add(q.q);
+      return { ...q, _type: effectiveType };
+    }
   }
 
-  const bank = QUESTIONS[type];
-  if (!bank) return [];
-  return (bank[company] || []).map(q => ({...q, _type:type}));
-}
-
-function pickQuestion() {
-  const pool = getAvailableQuestions();
-  const unused = pool.filter(q => !APP.state.usedQuestionKeys.has(q.q));
-  const available = unused.length > 0 ? unused : pool;
-
-  // Filter by difficulty/depth
-  const seniorityDepth = { associate:'mid', pm:'mid', senior:'senior', group:'senior' };
-  const targetDepth = seniorityDepth[APP.config.seniority];
-  const matched = available.filter(q => q.depth === targetDepth);
-  const chosen = pickRandom(matched.length > 0 ? matched : available);
-
-  if (chosen) APP.state.usedQuestionKeys.add(chosen.q);
-  return chosen;
+  // Fallback: just generate one even if somehow duplicate
+  const q = generateQuestion(effectiveType, company, seniority);
+  return q ? { ...q, _type: effectiveType } : null;
 }
 
 function askNextQuestion() {
@@ -1057,14 +1303,75 @@ function endInterview() {
   APP.state.interviewEnded = true;
   clearInterval(APP.state.timerInterval);
 
-  const closings = [
-    "That's all the time we have. Thank you for your answers. Let me put together my evaluation.",
-    "We're done. I'll compile my assessment now.",
-    "Time's up. I have enough to evaluate. Stand by for your results."
-  ];
-  addMessage('interviewer', pickRandom(closings));
+  // Count actual candidate responses (not clarifying questions)
+  const candidateAnswers = APP.state.transcript.filter(m => m.role === 'candidate');
+  const substantiveAnswers = candidateAnswers.filter(m => !detectClarifyingQuestion(m.text));
+
+  if (substantiveAnswers.length === 0) {
+    // No real answers given — show insufficient data screen
+    addMessage('interviewer', "You ended the interview without providing any substantive answers. There is nothing to evaluate.");
+    setTimeout(() => showInsufficientData(candidateAnswers.length), 1500);
+    return;
+  }
+
+  if (substantiveAnswers.length === 1) {
+    addMessage('interviewer', "We barely got started. I have very limited data to work with, but I'll give you what I can.");
+  } else {
+    const closings = [
+      "That's all the time we have. Let me put together my evaluation.",
+      "We're done. I'll compile my assessment now.",
+      "Time's up. I have enough to evaluate. Stand by for your results."
+    ];
+    addMessage('interviewer', pickRandom(closings));
+  }
 
   setTimeout(() => showEvaluation(), 2000);
+}
+
+function showInsufficientData(clarificationCount) {
+  document.getElementById('interview-screen').classList.add('hidden');
+  document.getElementById('eval-screen').classList.remove('hidden');
+
+  document.getElementById('overall-score').innerHTML = `
+    <div class="big-score" style="color:var(--text-muted)">N/A</div>
+    <div class="score-label">No Score — Insufficient Data</div>
+    <div class="verdict">You did not provide enough answers to generate a meaningful evaluation.</div>
+  `;
+
+  document.getElementById('score-grid').innerHTML = `
+    <div class="score-card" style="grid-column:1/-1;text-align:center;padding:2rem">
+      <div class="dim-name" style="font-size:.9rem;margin-bottom:.75rem">No dimension scores available</div>
+      <div class="score-comment">An evaluation requires at least 2-3 substantive answers to interview questions. Clarifying questions alone are not sufficient.</div>
+    </div>
+  `;
+
+  const strongEl = document.getElementById('strong-signals');
+  const weakEl = document.getElementById('weak-signals');
+  strongEl.innerHTML = '';
+  weakEl.innerHTML = '';
+
+  if (clarificationCount > 0) {
+    strongEl.innerHTML = '<div class="signal strong">You asked ' + clarificationCount + ' clarifying question(s) before the interview ended. That instinct is good — but you need to follow through with actual answers.</div>';
+  }
+
+  weakEl.innerHTML = '<div class="signal weak">The interview ended with no substantive answers. In a real interview, this would be an automatic rejection. Even a partial, imperfect answer is better than no answer.</div>';
+
+  document.getElementById('advice-list').innerHTML = `
+    <li><strong>Next time:</strong> Start answering even if you feel uncertain. Structure your thinking out loud: "Let me break this down into three parts..." Interviewers evaluate your reasoning process, not just your conclusions.</li>
+    <li><strong>Clarifying questions are good, but they're the setup — not the answer.</strong> Aim to spend 1-2 minutes clarifying, then dive into your response. Don't let clarification become avoidance.</li>
+  `;
+
+  // Show transcript if any
+  const reviewEl = document.getElementById('transcript-review');
+  reviewEl.innerHTML = '';
+  APP.state.transcript.forEach(msg => {
+    reviewEl.innerHTML += `
+      <div class="transcript-entry">
+        <div class="te-role ${msg.role}">${msg.role === 'interviewer' ? 'Interviewer' : 'You'}</div>
+        <div class="te-text">${escapeHtml(msg.text)}</div>
+      </div>
+    `;
+  });
 }
 
 // ============================================================
@@ -1075,19 +1382,37 @@ function showEvaluation() {
   document.getElementById('interview-screen').classList.add('hidden');
   document.getElementById('eval-screen').classList.remove('hidden');
 
+  // Analyze ALL candidate answers for aggregate stats
+  const candidateMessages = APP.state.transcript.filter(m => m.role === 'candidate');
+  const substantiveAnswers = candidateMessages.filter(m => !detectClarifyingQuestion(m.text));
+  const clarifyingQs = candidateMessages.filter(m => detectClarifyingQuestion(m.text));
+
+  // Per-answer detailed analysis for contextual feedback
+  const answerAnalyses = substantiveAnswers.map(m => ({
+    text: m.text,
+    analysis: analyzeAnswer(m.text)
+  }));
+
+  // Calculate final scores based ONLY on actual data
   const finalScores = {};
+  const hasData = {};
   EVAL_DIMENSIONS.forEach(dim => {
     const arr = APP.state.candidateScores[dim.key];
+    hasData[dim.key] = arr.length > 0;
     if (arr.length > 0) {
       finalScores[dim.key] = Math.round(arr.reduce((a,b)=>a+b,0) / arr.length);
     } else {
-      finalScores[dim.key] = 2;
+      finalScores[dim.key] = 0; // 0 = not evaluated, not "2 by default"
     }
-    finalScores[dim.key] = Math.max(1, Math.min(5, finalScores[dim.key]));
+    finalScores[dim.key] = Math.max(0, Math.min(5, finalScores[dim.key]));
   });
 
-  // Overall
-  const overall = (Object.values(finalScores).reduce((a,b)=>a+b,0) / Object.values(finalScores).length).toFixed(1);
+  // Overall — only count dimensions with actual data
+  const scoredDims = Object.values(finalScores).filter(s => s > 0);
+  const overall = scoredDims.length > 0
+    ? (scoredDims.reduce((a,b)=>a+b,0) / scoredDims.length).toFixed(1)
+    : "N/A";
+
   const verdicts = {
     1: "Significant gaps. Needs fundamental practice.",
     2: "Below bar. Needs structured preparation.",
@@ -1095,38 +1420,53 @@ function showEvaluation() {
     4: "Above bar. Strong performance with minor gaps.",
     5: "Exceptional. Would advance to next round."
   };
-  const verdictKey = Math.round(parseFloat(overall));
+
+  const verdictKey = overall === "N/A" ? 0 : Math.round(parseFloat(overall));
+  const verdict = verdictKey === 0
+    ? "Not enough data for a verdict. Try answering more questions."
+    : verdicts[verdictKey] || verdicts[3];
 
   document.getElementById('overall-score').innerHTML = `
     <div class="big-score">${overall}</div>
-    <div class="score-label">Overall Score (out of 5)</div>
-    <div class="verdict">${verdicts[verdictKey] || verdicts[3]}</div>
+    <div class="score-label">Overall Score (out of 5)${scoredDims.length < 6 ? ' — based on limited data' : ''}</div>
+    <div class="verdict">${verdict}</div>
   `;
 
-  // Dimension scores
+  // Dimension scores — show "Not evaluated" for dimensions with no data
   const grid = document.getElementById('score-grid');
   grid.innerHTML = '';
-  const scoreComments = {
-    1: "Did not demonstrate this skill.",
-    2: "Attempted but fell short of expectations.",
-    3: "Adequate. Met basic expectations.",
-    4: "Strong. Exceeded expectations in most areas.",
-    5: "Exceptional. Would stand out among candidates."
-  };
 
   EVAL_DIMENSIONS.forEach(dim => {
     const s = finalScores[dim.key];
-    grid.innerHTML += `
-      <div class="score-card">
-        <div class="dim-name">${dim.name}</div>
-        <div class="score-bar-track"><div class="score-bar-fill s${s}"></div></div>
-        <div class="score-val">${s}/5 — ${scoreComments[s]}</div>
-        <div class="score-comment">${dim.desc}</div>
-      </div>
-    `;
+    if (s === 0) {
+      grid.innerHTML += `
+        <div class="score-card" style="opacity:.5">
+          <div class="dim-name">${dim.name}</div>
+          <div class="score-bar-track"><div class="score-bar-fill" style="width:0"></div></div>
+          <div class="score-val">Not evaluated — insufficient data for this dimension</div>
+          <div class="score-comment">${dim.desc}</div>
+        </div>
+      `;
+    } else {
+      const scoreComments = {
+        1: "Did not demonstrate this skill.",
+        2: "Attempted but fell short of expectations.",
+        3: "Adequate. Met basic expectations.",
+        4: "Strong. Exceeded expectations in most areas.",
+        5: "Exceptional. Would stand out among candidates."
+      };
+      grid.innerHTML += `
+        <div class="score-card">
+          <div class="dim-name">${dim.name}</div>
+          <div class="score-bar-track"><div class="score-bar-fill s${s}"></div></div>
+          <div class="score-val">${s}/5 — ${scoreComments[s]}</div>
+          <div class="score-comment">${dim.desc}</div>
+        </div>
+      `;
+    }
   });
 
-  // Signals
+  // CONTEXTUAL SIGNALS — derived from what actually happened
   const strongEl = document.getElementById('strong-signals');
   const weakEl = document.getElementById('weak-signals');
   strongEl.innerHTML = '';
@@ -1135,55 +1475,125 @@ function showEvaluation() {
   const strongSignals = [];
   const weakSignals = [];
 
-  if (APP.state._clarificationCount >= 2) strongSignals.push("Asked clarifying questions before diving in. This is exactly what strong candidates do — it shows you don't assume you have all the context.");
-  if (APP.state._clarificationCount === 1) strongSignals.push("Asked at least one clarifying question. Good instinct, but consider asking 2-3 targeted questions upfront to fully scope the problem before answering.");
-  if (finalScores.problem_framing >= 4) strongSignals.push("Clear problem framing before jumping to solutions — this shows discipline.");
-  if (finalScores.structure >= 4) strongSignals.push("Well-structured communication. Easy to follow your reasoning.");
-  if (finalScores.metrics >= 4) strongSignals.push("Strong metrics intuition. You connected proposals to measurable outcomes.");
-  if (finalScores.tradeoffs >= 4) strongSignals.push("Good trade-off awareness. You acknowledged costs and alternatives.");
-  if (finalScores.depth >= 4) strongSignals.push("Depth of reasoning was above average. You went beyond surface-level answers.");
-  if (finalScores.execution >= 4) strongSignals.push("Execution plans felt grounded in reality.");
+  // Only add signals that are backed by actual data
+  const clCount = APP.state._clarificationCount || 0;
+  if (clCount >= 2) {
+    strongSignals.push("Asked " + clCount + " clarifying questions before diving in. This is exactly what strong candidates do — it shows you don't assume you have all the context.");
+  } else if (clCount === 1) {
+    strongSignals.push("Asked a clarifying question. Good instinct, but consider asking 2-3 targeted questions upfront to fully scope the problem.");
+  }
 
-  if (finalScores.problem_framing <= 2) weakSignals.push("Jumped to solutions without framing the problem. Interviewers notice this immediately.");
-  if (finalScores.structure <= 2) weakSignals.push("Answers lacked structure. Use frameworks, but apply them to the specific problem — don't recite them.");
-  if (finalScores.metrics <= 2) weakSignals.push("Metrics were absent or vague. Every PM answer should connect to measurable outcomes.");
-  if (finalScores.tradeoffs <= 2) weakSignals.push("No trade-off discussion. Real PMs make hard choices. Show you can weigh competing options.");
-  if (finalScores.depth <= 2) weakSignals.push("Answers stayed surface-level. Interviewers want to see you can go deep when probed.");
-  if (finalScores.execution <= 2) weakSignals.push("Execution plans were hand-wavy. Be specific about what you'd ship, when, and why in that order.");
+  // Count aggregate patterns across all answers
+  let vagueCount = 0, shallowCount = 0, frameworkCount = 0, metricsCount = 0;
+  let tradeoffCount = 0, specificCount = 0, userFocusCount = 0;
+  let totalWordCount = 0;
 
-  if (!APP.state._clarificationCount || APP.state._clarificationCount === 0) weakSignals.push("You never asked a clarifying question. Strong PMs always clarify scope, users, success criteria, and constraints before proposing solutions. Jumping straight into answers signals junior thinking.");
-  if (APP.state.totalExchanges < 4) weakSignals.push("Very few substantive exchanges. In a real interview, brevity without depth signals lack of preparation.");
-  if (strongSignals.length === 0) strongSignals.push("Keep practicing. Strong signals will emerge as you develop more structured thinking patterns.");
+  answerAnalyses.forEach(({analysis: a}) => {
+    if (a.isVague) vagueCount++;
+    if (a.isShallow) shallowCount++;
+    if (a.hasFramework) frameworkCount++;
+    if (a.hasMetrics) metricsCount++;
+    if (a.hasTradeoffs) tradeoffCount++;
+    if (a.hasSpecifics) specificCount++;
+    if (a.hasUserFocus) userFocusCount++;
+    totalWordCount += a.wordCount;
+  });
+
+  const total = substantiveAnswers.length;
+  if (total === 0) {
+    // Shouldn't reach here (handled by showInsufficientData) but safety net
+    weakSignals.push("No substantive answers were provided.");
+  } else {
+    // Contextual strong signals with specifics
+    if (frameworkCount >= Math.ceil(total * 0.6)) {
+      strongSignals.push("Used structured frameworks in " + frameworkCount + " of " + total + " answers. Your communication was organized and easy to follow.");
+    }
+    if (metricsCount >= Math.ceil(total * 0.5)) {
+      strongSignals.push("Mentioned metrics in " + metricsCount + " of " + total + " answers. You consistently connected proposals to measurable outcomes.");
+    }
+    if (tradeoffCount >= Math.ceil(total * 0.5)) {
+      strongSignals.push("Discussed trade-offs in " + tradeoffCount + " of " + total + " answers. You showed awareness that every decision has costs.");
+    }
+    if (userFocusCount >= Math.ceil(total * 0.5)) {
+      strongSignals.push("Showed user-centric thinking in " + userFocusCount + " of " + total + " answers. You grounded your reasoning in user needs.");
+    }
+    if (specificCount >= Math.ceil(total * 0.6)) {
+      strongSignals.push("Provided concrete specifics in " + specificCount + " of " + total + " answers. Your answers went beyond generic territory.");
+    }
+    if (totalWordCount / total > 120) {
+      strongSignals.push("Your average answer length showed depth of thought. You took the time to develop your reasoning.");
+    }
+
+    // Contextual weak signals
+    if (vagueCount >= Math.ceil(total * 0.5)) {
+      weakSignals.push("" + vagueCount + " of " + total + " answers were too vague. The interviewer had to push for specifics multiple times. In a real interview, this burns time and signals unpreparedness.");
+    }
+    if (shallowCount >= Math.ceil(total * 0.5) && shallowCount > vagueCount) {
+      weakSignals.push("" + shallowCount + " of " + total + " answers stayed surface-level. You answered the question but didn't go deep enough to differentiate yourself.");
+    }
+    if (metricsCount === 0 && total >= 2) {
+      weakSignals.push("You never mentioned metrics across " + total + " answers. Every PM answer should connect to measurable outcomes — this is a consistent gap.");
+    } else if (metricsCount < Math.ceil(total * 0.3) && total >= 3) {
+      weakSignals.push("Metrics appeared in only " + metricsCount + " of " + total + " answers. Make it a habit to define success criteria in every response.");
+    }
+    if (tradeoffCount === 0 && total >= 2) {
+      weakSignals.push("No trade-off discussion in any of your " + total + " answers. Real PMs make hard choices — show you can weigh competing options.");
+    }
+    if (frameworkCount === 0 && total >= 2) {
+      weakSignals.push("None of your answers used a clear structure or framework. Organize your thinking before speaking — even a simple 'three dimensions' approach helps.");
+    }
+    if (clCount === 0 && total >= 1) {
+      weakSignals.push("You never asked a clarifying question. Strong PMs clarify scope, users, and constraints before proposing solutions.");
+    }
+    if (totalWordCount / total < 40 && total >= 2) {
+      weakSignals.push("Your answers averaged " + Math.round(totalWordCount / total) + " words each. This is too brief for a PM interview — you're not demonstrating depth.");
+    }
+    if (total === 1) {
+      weakSignals.push("Only one substantive answer in the entire interview. A full evaluation requires sustained engagement across multiple questions.");
+    }
+  }
+
+  if (strongSignals.length === 0 && total > 0) {
+    strongSignals.push("No standout strengths detected in this session. That's okay — the goal is to identify gaps and improve.");
+  }
 
   strongSignals.forEach(s => strongEl.innerHTML += `<div class="signal strong">${s}</div>`);
   weakSignals.forEach(s => weakEl.innerHTML += `<div class="signal weak">${s}</div>`);
 
-  // Advice
+  // CONTEXTUAL ADVICE — only for dimensions with actual data and weaknesses
   const adviceEl = document.getElementById('advice-list');
   adviceEl.innerHTML = '';
   const advice = [];
 
-  if (finalScores.problem_framing <= 3) {
-    advice.push("<strong>Problem Framing:</strong> Before answering any question, spend 30 seconds articulating the problem in your own words. Ask clarifying questions. \"Let me make sure I understand the problem...\" is always a strong opening.");
-  }
-  if (finalScores.structure <= 3) {
-    advice.push("<strong>Structure:</strong> Practice the \"3-bucket\" approach: break every answer into 3 dimensions. Announce your structure upfront. \"I'll think about this across three dimensions: user impact, technical feasibility, and business value.\"");
-  }
-  if (finalScores.metrics <= 3) {
-    advice.push("<strong>Metrics:</strong> For every feature or decision, immediately define a north star metric and 2-3 supporting metrics. Practice connecting qualitative goals to quantitative measures.");
-  }
-  if (finalScores.tradeoffs <= 3) {
-    advice.push("<strong>Trade-offs:</strong> After presenting any recommendation, force yourself to say \"The trade-off here is...\" Even if the interviewer doesn't ask, surfacing trade-offs proactively signals maturity.");
-  }
-  if (finalScores.depth <= 3) {
-    advice.push("<strong>Depth:</strong> When you make a claim, immediately follow with a concrete example. \"For example...\" or \"Specifically...\" forces you out of generic territory into credible specifics.");
-  }
-  if (finalScores.execution <= 3) {
-    advice.push("<strong>Execution:</strong> Practice giving phased plans: Phase 1 (MVP in 2 weeks), Phase 2 (iterate in 6 weeks), Phase 3 (scale). Include team composition and dependencies.");
-  }
+  if (total === 0) {
+    advice.push("<strong>Start answering.</strong> You can't improve what you don't practice. Even a messy answer teaches you more than silence.");
+  } else {
+    // Advice tied to actual patterns
+    if (frameworkCount < Math.ceil(total * 0.4)) {
+      advice.push("<strong>Structure:</strong> In " + (total - frameworkCount) + " of your " + total + " answers, there was no clear framework. Practice: \"I'll approach this in three parts...\" before diving in. Announce your structure, then execute it.");
+    }
+    if (metricsCount < Math.ceil(total * 0.4)) {
+      advice.push("<strong>Metrics:</strong> You mentioned metrics in only " + metricsCount + " of " + total + " answers. After every proposal, force yourself to say: \"I'd measure success by...\" and name a north star metric plus 2 supporting metrics.");
+    }
+    if (tradeoffCount < Math.ceil(total * 0.4)) {
+      advice.push("<strong>Trade-offs:</strong> Only " + tradeoffCount + " of " + total + " answers addressed trade-offs. After presenting any recommendation, add: \"The trade-off here is...\" Proactively surfacing costs signals PM maturity.");
+    }
+    if (vagueCount >= Math.ceil(total * 0.3)) {
+      advice.push("<strong>Specificity:</strong> " + vagueCount + " answers were flagged as vague. Replace generic statements with concrete examples: instead of \"improve the experience,\" say \"reduce the checkout flow from 5 steps to 2, targeting a 15% conversion lift.\"");
+    }
+    if (userFocusCount < Math.ceil(total * 0.3)) {
+      advice.push("<strong>User focus:</strong> Only " + userFocusCount + " of " + total + " answers referenced users, customers, or personas. Start every answer by defining who you're solving for and what their specific pain point is.");
+    }
+    if (clCount === 0) {
+      advice.push("<strong>Clarifying questions:</strong> You jumped straight into answering without clarifying. Next time, spend 60-90 seconds asking about scope, target users, success metrics, and constraints before proposing solutions.");
+    }
+    if (totalWordCount / total < 50 && total >= 2) {
+      advice.push("<strong>Depth:</strong> Your answers averaged only " + Math.round(totalWordCount / total) + " words. PM interviews reward thorough, layered thinking. Aim for at least 2-3 minutes per answer with examples, metrics, and trade-offs.");
+    }
 
-  if (advice.length === 0) {
-    advice.push("<strong>Overall:</strong> Solid performance. To push from good to exceptional: anticipate the interviewer's next question and address it proactively. Show you're thinking two steps ahead.");
+    if (advice.length === 0) {
+      advice.push("<strong>Overall:</strong> Solid performance across the board. To push from good to exceptional: anticipate the interviewer's next question and address it proactively. Show you're thinking two steps ahead.");
+    }
   }
 
   advice.forEach(a => adviceEl.innerHTML += `<li>${a}</li>`);
@@ -1200,14 +1610,16 @@ function showEvaluation() {
       } else {
         const a = analyzeAnswer(msg.text);
         const notes = [];
-        if (a.isVague) notes.push("This answer was too vague. Add specifics and examples.");
-        if (a.isShallow) notes.push("Surface-level response. Go deeper with mechanisms and reasoning.");
-        if (a.missingMetrics) notes.push("No metrics mentioned. Connect your answer to measurable outcomes.");
-        if (a.missingTradeoffs) notes.push("Missing trade-off discussion. Every proposal has costs.");
-        if (a.hasFramework) notes.push("Good use of structure.");
-        if (a.hasUserFocus) notes.push("Good user-centric thinking.");
-        if (a.hasSpecifics) notes.push("Good specificity.");
-        if (notes.length > 0) annotation = notes.join(' ');
+        if (a.isVague) notes.push("Too vague — add specifics and examples.");
+        if (a.isShallow && !a.isVague) notes.push("Surface-level — go deeper with mechanisms and reasoning.");
+        if (a.missingMetrics) notes.push("No metrics mentioned.");
+        if (a.missingTradeoffs) notes.push("No trade-offs discussed.");
+        if (a.hasFramework) notes.push("Good: structured approach.");
+        if (a.hasMetrics) notes.push("Good: included metrics.");
+        if (a.hasTradeoffs) notes.push("Good: addressed trade-offs.");
+        if (a.hasUserFocus) notes.push("Good: user-centric thinking.");
+        if (a.hasSpecifics) notes.push("Good: concrete specifics.");
+        if (notes.length > 0) annotation = notes.join(' | ');
       }
     }
     reviewEl.innerHTML += `
