@@ -455,6 +455,12 @@ const FOLLOWUPS = {
     "Clock is ticking. What's your final answer on this?",
     "We need to move on. Land this point concisely.",
   ],
+  clarification_acknowledged: [
+    "Good question. Let me give you some context.",
+    "Fair to ask.",
+    "Sure, I can clarify that.",
+    "Reasonable clarification.",
+  ],
   skeptical_eng: [
     "How would you actually implement that? The engineering complexity is non-trivial.",
     "That's going to create technical debt. Are you factoring that in?",
@@ -481,6 +487,128 @@ const FOLLOWUPS = {
 // ============================================================
 // PERSONA BEHAVIORS
 // ============================================================
+// ============================================================
+// CLARIFICATION RESPONSES
+// When candidate asks a question, interviewer answers contextually
+// ============================================================
+const CLARIFICATIONS = {
+  // Scope / direction
+  scope: [
+    "Think about this broadly first, then narrow down. I want to see how you scope it yourself.",
+    "You can define the scope however you think is appropriate. Tell me why you'd scope it that way.",
+    "I'll leave the scope to you. Part of the exercise is seeing how you frame boundaries.",
+    "Focus on the area you think has the most impact. Justify your scoping decision."
+  ],
+  // Target users
+  users: [
+    "Assume a general consumer audience unless you think a specific segment makes more sense. If you do narrow it, tell me why.",
+    "That's for you to define. Who do you think the highest-value user segment is here?",
+    "Start with who you think the primary user is, and explain your reasoning.",
+    "Good instinct to clarify. Pick the user segment you'd prioritize and walk me through it."
+  ],
+  // Metrics / success criteria
+  metrics_clarity: [
+    "I want you to define what success looks like. That's part of what I'm evaluating.",
+    "Tell me what you'd measure. I'm interested in your metrics instinct.",
+    "You decide the success criteria. Walk me through your framework.",
+    "Define the north star yourself. I want to see how you think about measurement."
+  ],
+  // Constraints / resources
+  constraints: [
+    "Assume a standard team — 4-6 engineers, a designer, a data analyst. Standard tech stack. No unusual constraints unless I add them.",
+    "You have a reasonable team and a quarter to show results. Work within that.",
+    "Assume typical resourcing for a company this size. If you need to make assumptions, state them.",
+    "Standard constraints apply. If you think a constraint matters for your approach, call it out explicitly."
+  ],
+  // Timeline
+  timeline: [
+    "Think in terms of a quarter for initial impact, but feel free to lay out phases if that's how you'd approach it.",
+    "I'd say you have about 3-6 months. But I care more about how you'd sequence things than the exact timeline.",
+    "Let's say you need to show something meaningful in 8-12 weeks. How would you break that down?",
+    "Standard product cycle. Plan for a quarter. If you think it takes longer, explain why."
+  ],
+  // Competitive / market context
+  market: [
+    "Assume the competitive landscape you'd expect for this type of product. I want to see if you factor that in naturally.",
+    "You can assume standard market conditions. If competitive dynamics change your approach, tell me how.",
+    "Don't worry about getting the market details exactly right. I care about your reasoning process.",
+    "Use your general knowledge. The specifics matter less than how you incorporate market context into your thinking."
+  ],
+  // Technical constraints
+  technical: [
+    "Assume standard cloud infrastructure, modern tech stack. No legacy constraints unless you think they're relevant.",
+    "Standard technical environment. If your approach depends on a specific technical assumption, state it.",
+    "Don't go deep on implementation details unless I ask. Focus on the product-level decision.",
+    "Assume the engineering team can build what you need. I'm more interested in what you'd build and why."
+  ],
+  // Geography / region
+  geography: [
+    "Start with a single market you think makes the most sense. Tell me why that market first.",
+    "US market first unless you think there's a compelling reason to go elsewhere.",
+    "Your call. But explain your market entry reasoning.",
+    "Pick the market with the best risk-reward profile and walk me through it."
+  ],
+  // Business model
+  business: [
+    "Assume the company's existing business model. I want to see if you can work within those constraints.",
+    "You can propose a business model, but justify it. I'll push back if I think it's weak.",
+    "Revenue model is part of the exercise. Tell me what you'd propose.",
+    "Think about monetization, but don't let it dominate the answer. Balance user value with business value."
+  ],
+  // General / catch-all
+  general: [
+    "That's a reasonable thing to clarify. Make an assumption, state it clearly, and move forward. I'll redirect you if needed.",
+    "State your assumption and proceed. Part of this exercise is seeing how you handle ambiguity.",
+    "Good clarifying instinct. Make a reasonable assumption and tell me what it is. I'll course-correct if necessary.",
+    "I'll let you define that. The fact that you're asking shows good product thinking. Now make a call and justify it.",
+    "Fair question. Take your best guess, state it as an assumption, and build from there. I'll add constraints if I want to test you further."
+  ]
+};
+
+// Detects if a candidate message is a clarifying question
+function detectClarifyingQuestion(text) {
+  const lower = text.toLowerCase();
+  const questionMarks = (text.match(/\?/g) || []).length;
+  const words = lower.split(/\s+/);
+  const wordCount = words.length;
+
+  // Strong question signals
+  const questionStarts = /^(can |could |should |would |is |are |do |does |what |who |where |when |why |how |which |just to clarify|before i |to clarify|quick question|let me clarify|i want to understand|can you tell|could you clarify|may i ask)/i;
+  const questionPhrases = /(can you (tell|clarify|explain|share|give)|could you (clarify|help me understand)|what (is|are|do|does|would|should)|who (is|are)|how (many|much|long|do|does|would|should|is)|are we (talking|looking|assuming|considering)|is (this|that|there|it)|should i (assume|consider|focus|think)|do (we|i|you) (have|know|need|want)|what('s| is| are) the (scope|goal|target|timeline|budget|constraint|metric|user|audience|market|priority)|are there (any |specific )?(constraints|requirements|limitations|guidelines)|which (market|segment|user|region|platform|metric)|how (big|large|small|broad|narrow)|what kind of|when you say|by .+ do you mean)/i;
+  const clarifyingIntents = /(before i (dive in|start|answer|proceed|begin)|just to (make sure|confirm|clarify|understand)|i (want|need) to (clarify|understand|confirm|ask)|few (questions|clarifications|things) before|let me (ask|clarify|understand)|couple of questions)/i;
+
+  const hasQuestionMark = questionMarks > 0;
+  const startsLikeQuestion = questionStarts.test(lower);
+  const hasQuestionPhrase = questionPhrases.test(lower);
+  const hasClarifyingIntent = clarifyingIntents.test(lower);
+
+  // If it's a long answer with a question tacked on, it's probably not primarily a clarification
+  if (wordCount > 120 && questionMarks <= 1) return null;
+
+  // Score the likelihood this is a clarifying question
+  let score = 0;
+  if (hasQuestionMark) score += 2;
+  if (startsLikeQuestion) score += 3;
+  if (hasQuestionPhrase) score += 3;
+  if (hasClarifyingIntent) score += 4;
+  if (wordCount < 50 && hasQuestionMark) score += 1;
+
+  if (score < 3) return null;
+
+  // Determine what they're asking about
+  if (/who.*(user|customer|audience|persona|target|demographic|segment)|target (user|audience|market|customer|segment)|user (base|segment|group)|for whom/i.test(lower)) return 'users';
+  if (/metric|measure|success|kpi|north star|how.*(know|measure|track|define success)|what.*(success|goal) look/i.test(lower)) return 'metrics_clarity';
+  if (/scope|broad|narrow|focus|limit|boundary|how (big|wide|broad|narrow)|what part/i.test(lower)) return 'scope';
+  if (/team|engineer|resource|staff|people|headcount|budget|how many (people|engineers|designers)/i.test(lower)) return 'constraints';
+  if (/timeline|deadline|time.?(frame|line|horizon)|how (long|much time)|when.*ship|quarter|month|week|launch date/i.test(lower)) return 'timeline';
+  if (/market|competitor|competitive|landscape|geography|region|country|global|domestic|international/i.test(lower)) return 'market';
+  if (/technical|tech stack|infrastructure|platform|system|architecture|api|backend|database|legacy/i.test(lower)) return 'technical';
+  if (/geography|region|country|countries|location|local|global|international|domestic|us|india|europe/i.test(lower)) return 'geography';
+  if (/revenue|monetiz|business model|pricing|cost|profit|margin|subscription|freemium|paid|free tier/i.test(lower)) return 'business';
+
+  return 'general';
+}
+
 const PERSONAS = {
   neutral: {
     name: "Neutral PM Lead",
@@ -730,6 +858,30 @@ function sendMessage() {
 
 function processResponse(answer) {
   if (APP.state.interviewEnded) return;
+
+  // --- Check if the candidate is asking a clarifying question ---
+  const clarifyType = detectClarifyingQuestion(answer);
+  if (clarifyType) {
+    // Track that they asked a clarification (positive signal for problem_framing)
+    if (!APP.state._clarificationCount) APP.state._clarificationCount = 0;
+    APP.state._clarificationCount++;
+    // Give a small bonus for good clarifying behavior (up to 3 times)
+    if (APP.state._clarificationCount <= 3) {
+      APP.state.candidateScores.problem_framing.push(4);
+    }
+
+    const ack = pickRandom(FOLLOWUPS.clarification_acknowledged);
+    const detail = pickRandom(CLARIFICATIONS[clarifyType] || CLARIFICATIONS.general);
+
+    // In stress mode, sometimes push them to just make assumptions
+    if (APP.config.stressMode && Math.random() < 0.4) {
+      addMessage('interviewer', "I'm not going to give you all the constraints upfront. Make an assumption, state it, and move forward. That's what we do in the real world.");
+      return;
+    }
+
+    addMessage('interviewer', ack + " " + detail);
+    return;
+  }
 
   const analysis = analyzeAnswer(answer);
   const persona = PERSONAS[APP.config.persona];
@@ -983,6 +1135,8 @@ function showEvaluation() {
   const strongSignals = [];
   const weakSignals = [];
 
+  if (APP.state._clarificationCount >= 2) strongSignals.push("Asked clarifying questions before diving in. This is exactly what strong candidates do — it shows you don't assume you have all the context.");
+  if (APP.state._clarificationCount === 1) strongSignals.push("Asked at least one clarifying question. Good instinct, but consider asking 2-3 targeted questions upfront to fully scope the problem before answering.");
   if (finalScores.problem_framing >= 4) strongSignals.push("Clear problem framing before jumping to solutions — this shows discipline.");
   if (finalScores.structure >= 4) strongSignals.push("Well-structured communication. Easy to follow your reasoning.");
   if (finalScores.metrics >= 4) strongSignals.push("Strong metrics intuition. You connected proposals to measurable outcomes.");
@@ -997,6 +1151,7 @@ function showEvaluation() {
   if (finalScores.depth <= 2) weakSignals.push("Answers stayed surface-level. Interviewers want to see you can go deep when probed.");
   if (finalScores.execution <= 2) weakSignals.push("Execution plans were hand-wavy. Be specific about what you'd ship, when, and why in that order.");
 
+  if (!APP.state._clarificationCount || APP.state._clarificationCount === 0) weakSignals.push("You never asked a clarifying question. Strong PMs always clarify scope, users, success criteria, and constraints before proposing solutions. Jumping straight into answers signals junior thinking.");
   if (APP.state.totalExchanges < 4) weakSignals.push("Very few substantive exchanges. In a real interview, brevity without depth signals lack of preparation.");
   if (strongSignals.length === 0) strongSignals.push("Keep practicing. Strong signals will emerge as you develop more structured thinking patterns.");
 
@@ -1039,16 +1194,21 @@ function showEvaluation() {
   APP.state.transcript.forEach((msg, i) => {
     let annotation = '';
     if (msg.role === 'candidate') {
-      const a = analyzeAnswer(msg.text);
-      const notes = [];
-      if (a.isVague) notes.push("This answer was too vague. Add specifics and examples.");
-      if (a.isShallow) notes.push("Surface-level response. Go deeper with mechanisms and reasoning.");
-      if (a.missingMetrics) notes.push("No metrics mentioned. Connect your answer to measurable outcomes.");
-      if (a.missingTradeoffs) notes.push("Missing trade-off discussion. Every proposal has costs.");
-      if (a.hasFramework) notes.push("Good use of structure.");
-      if (a.hasUserFocus) notes.push("Good user-centric thinking.");
-      if (a.hasSpecifics) notes.push("Good specificity.");
-      if (notes.length > 0) annotation = notes.join(' ');
+      const clarifyType = detectClarifyingQuestion(msg.text);
+      if (clarifyType) {
+        annotation = "Good: Asked a clarifying question (" + clarifyType.replace(/_/g,' ') + "). This shows problem-scoping discipline.";
+      } else {
+        const a = analyzeAnswer(msg.text);
+        const notes = [];
+        if (a.isVague) notes.push("This answer was too vague. Add specifics and examples.");
+        if (a.isShallow) notes.push("Surface-level response. Go deeper with mechanisms and reasoning.");
+        if (a.missingMetrics) notes.push("No metrics mentioned. Connect your answer to measurable outcomes.");
+        if (a.missingTradeoffs) notes.push("Missing trade-off discussion. Every proposal has costs.");
+        if (a.hasFramework) notes.push("Good use of structure.");
+        if (a.hasUserFocus) notes.push("Good user-centric thinking.");
+        if (a.hasSpecifics) notes.push("Good specificity.");
+        if (notes.length > 0) annotation = notes.join(' ');
+      }
     }
     reviewEl.innerHTML += `
       <div class="transcript-entry">
