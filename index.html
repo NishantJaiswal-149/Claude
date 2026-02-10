@@ -1,0 +1,1152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PM Interview Practice</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f1117;--surface:#1a1d27;--surface2:#242836;--border:#2e3347;
+  --text:#e4e4e7;--text-dim:#9ca3af;--text-muted:#6b7280;
+  --accent:#6366f1;--accent-hover:#818cf8;--accent-dim:#4f46e5;
+  --red:#ef4444;--green:#22c55e;--yellow:#eab308;--orange:#f97316;
+  --blue:#3b82f6;
+}
+html{font-size:15px}
+body{font-family:'SF Mono',SFMono-Regular,ui-monospace,'DejaVu Sans Mono',Menlo,Consolas,monospace;background:var(--bg);color:var(--text);min-height:100vh;line-height:1.6}
+
+/* Layout */
+.app{max-width:900px;margin:0 auto;padding:1.5rem}
+.hidden{display:none!important}
+
+/* Header */
+.header{border-bottom:1px solid var(--border);padding-bottom:1rem;margin-bottom:2rem}
+.header h1{font-size:1.1rem;font-weight:600;color:var(--text);letter-spacing:-.02em}
+.header p{font-size:.8rem;color:var(--text-muted);margin-top:.25rem}
+
+/* Screen titles */
+.screen-title{font-size:1rem;font-weight:600;margin-bottom:1.5rem;color:var(--text)}
+
+/* Setup Screen */
+.setup-section{margin-bottom:1.5rem}
+.setup-section label{display:block;font-size:.75rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.5rem;font-weight:600}
+.option-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:.5rem}
+.option-btn{background:var(--surface);border:1px solid var(--border);color:var(--text-dim);padding:.6rem .8rem;border-radius:6px;cursor:pointer;font-family:inherit;font-size:.8rem;transition:all .15s;text-align:left}
+.option-btn:hover{border-color:var(--accent);color:var(--text)}
+.option-btn.selected{border-color:var(--accent);background:var(--accent-dim);color:#fff}
+.option-btn .opt-sub{display:block;font-size:.7rem;color:var(--text-muted);margin-top:.15rem}
+.option-btn.selected .opt-sub{color:rgba(255,255,255,.7)}
+
+/* Persona selector */
+.persona-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:.5rem}
+.persona-btn{background:var(--surface);border:1px solid var(--border);color:var(--text-dim);padding:.6rem .8rem;border-radius:6px;cursor:pointer;font-family:inherit;font-size:.8rem;transition:all .15s;text-align:left}
+.persona-btn:hover{border-color:var(--accent);color:var(--text)}
+.persona-btn.selected{border-color:var(--accent);background:var(--accent-dim);color:#fff}
+.persona-btn .persona-name{font-weight:600;color:var(--text)}
+.persona-btn.selected .persona-name{color:#fff}
+.persona-btn .persona-desc{font-size:.7rem;color:var(--text-muted);margin-top:.15rem}
+.persona-btn.selected .persona-desc{color:rgba(255,255,255,.7)}
+
+/* Toggle */
+.toggle-row{display:flex;align-items:center;gap:.75rem;margin-top:.5rem}
+.toggle{width:40px;height:22px;background:var(--surface2);border:1px solid var(--border);border-radius:11px;cursor:pointer;position:relative;transition:all .2s}
+.toggle.on{background:var(--accent);border-color:var(--accent)}
+.toggle::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;background:#fff;border-radius:50%;transition:transform .2s}
+.toggle.on::after{transform:translateX(18px)}
+.toggle-label{font-size:.8rem;color:var(--text-dim)}
+
+/* Start button */
+.start-btn{background:var(--accent);color:#fff;border:none;padding:.75rem 2rem;border-radius:6px;cursor:pointer;font-family:inherit;font-size:.85rem;font-weight:600;margin-top:1rem;transition:all .15s;width:100%}
+.start-btn:hover{background:var(--accent-hover)}
+.start-btn:disabled{opacity:.4;cursor:not-allowed}
+
+/* Interview Screen */
+.interview-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;padding-bottom:.75rem;border-bottom:1px solid var(--border)}
+.interview-meta{font-size:.75rem;color:var(--text-muted)}
+.interview-meta span{margin-right:1rem}
+.timer{font-size:.8rem;font-weight:600;color:var(--text-dim);font-variant-numeric:tabular-nums}
+.timer.warning{color:var(--orange)}
+.timer.critical{color:var(--red);animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+
+.chat-area{height:calc(100vh - 320px);min-height:300px;overflow-y:auto;padding-right:.5rem;margin-bottom:1rem}
+.chat-area::-webkit-scrollbar{width:4px}
+.chat-area::-webkit-scrollbar-track{background:transparent}
+.chat-area::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+.msg{margin-bottom:1rem;max-width:85%}
+.msg.interviewer{margin-right:auto}
+.msg.candidate{margin-left:auto}
+.msg-sender{font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.25rem}
+.msg.interviewer .msg-sender{color:var(--accent)}
+.msg.candidate .msg-sender{color:var(--green)}
+.msg-body{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:.75rem 1rem;font-size:.85rem;line-height:1.6;color:var(--text)}
+.msg.candidate .msg-body{background:var(--surface2);border-color:var(--border)}
+.msg-body .pushback{color:var(--orange);font-style:italic}
+.msg-body .interrupt{color:var(--red);font-weight:600}
+.msg-time{font-size:.65rem;color:var(--text-muted);margin-top:.2rem}
+.msg.candidate .msg-time{text-align:right}
+
+.typing-indicator{display:flex;gap:4px;padding:.5rem 0}
+.typing-indicator span{width:6px;height:6px;background:var(--text-muted);border-radius:50%;animation:bounce .6s infinite alternate}
+.typing-indicator span:nth-child(2){animation-delay:.15s}
+.typing-indicator span:nth-child(3){animation-delay:.3s}
+@keyframes bounce{to{transform:translateY(-6px);opacity:.3}}
+
+.input-area{display:flex;gap:.5rem;align-items:flex-end}
+.input-area textarea{flex:1;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:.75rem;border-radius:6px;font-family:inherit;font-size:.85rem;resize:none;min-height:44px;max-height:160px;line-height:1.5;transition:border-color .15s}
+.input-area textarea:focus{outline:none;border-color:var(--accent)}
+.input-area textarea::placeholder{color:var(--text-muted)}
+.send-btn{background:var(--accent);color:#fff;border:none;width:44px;height:44px;border-radius:6px;cursor:pointer;font-size:1.1rem;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0}
+.send-btn:hover{background:var(--accent-hover)}
+.send-btn:disabled{opacity:.3;cursor:not-allowed}
+.end-btn{background:var(--red);color:#fff;border:none;padding:.5rem 1rem;border-radius:6px;cursor:pointer;font-family:inherit;font-size:.75rem;font-weight:600;transition:all .15s}
+.end-btn:hover{opacity:.8}
+
+/* Evaluation Screen */
+.eval-section{margin-bottom:2rem}
+.eval-section h2{font-size:.9rem;font-weight:600;margin-bottom:1rem;color:var(--text);padding-bottom:.5rem;border-bottom:1px solid var(--border)}
+.score-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+.score-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1rem}
+.score-card .dim-name{font-size:.8rem;font-weight:600;color:var(--text);margin-bottom:.5rem}
+.score-bar-track{height:6px;background:var(--surface2);border-radius:3px;margin-bottom:.35rem;overflow:hidden}
+.score-bar-fill{height:100%;border-radius:3px;transition:width .8s ease}
+.score-bar-fill.s1{background:var(--red);width:20%}
+.score-bar-fill.s2{background:var(--orange);width:40%}
+.score-bar-fill.s3{background:var(--yellow);width:60%}
+.score-bar-fill.s4{background:var(--blue);width:80%}
+.score-bar-fill.s5{background:var(--green);width:100%}
+.score-val{font-size:.75rem;color:var(--text-dim)}
+.score-comment{font-size:.75rem;color:var(--text-muted);margin-top:.35rem;line-height:1.5}
+
+.signals{margin-top:.75rem}
+.signal{padding:.6rem .8rem;border-radius:6px;margin-bottom:.5rem;font-size:.8rem;line-height:1.5}
+.signal.strong{background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);color:var(--green)}
+.signal.weak{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);color:var(--red)}
+
+.advice-list{list-style:none}
+.advice-list li{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:.75rem 1rem;margin-bottom:.5rem;font-size:.8rem;line-height:1.6;color:var(--text-dim)}
+.advice-list li strong{color:var(--text)}
+
+.overall-score{text-align:center;padding:1.5rem;background:var(--surface);border:1px solid var(--border);border-radius:8px;margin-bottom:2rem}
+.overall-score .big-score{font-size:2.5rem;font-weight:700;color:var(--accent)}
+.overall-score .score-label{font-size:.8rem;color:var(--text-muted);margin-top:.25rem}
+.overall-score .verdict{font-size:.85rem;color:var(--text);margin-top:.5rem;font-weight:600}
+
+/* Review transcript */
+.transcript-entry{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1rem;margin-bottom:.75rem}
+.transcript-entry .te-role{font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.25rem}
+.transcript-entry .te-role.interviewer{color:var(--accent)}
+.transcript-entry .te-role.candidate{color:var(--green)}
+.transcript-entry .te-text{font-size:.8rem;color:var(--text-dim);line-height:1.6}
+.transcript-entry .te-annotation{font-size:.75rem;color:var(--orange);margin-top:.5rem;padding-top:.5rem;border-top:1px solid var(--border);font-style:italic}
+
+.btn-row{display:flex;gap:.75rem;margin-top:1.5rem}
+.btn-secondary{background:var(--surface);border:1px solid var(--border);color:var(--text);padding:.6rem 1.2rem;border-radius:6px;cursor:pointer;font-family:inherit;font-size:.8rem;transition:all .15s}
+.btn-secondary:hover{border-color:var(--accent);color:var(--accent)}
+.btn-primary{background:var(--accent);color:#fff;border:none;padding:.6rem 1.2rem;border-radius:6px;cursor:pointer;font-family:inherit;font-size:.8rem;font-weight:600;transition:all .15s}
+.btn-primary:hover{background:var(--accent-hover)}
+
+/* Responsive */
+@media(max-width:600px){
+  .app{padding:1rem}
+  .score-grid{grid-template-columns:1fr}
+  .option-grid{grid-template-columns:1fr 1fr}
+  .msg{max-width:95%}
+  .chat-area{height:calc(100vh - 280px)}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <h1>PM Interview Practice</h1>
+    <p>Realistic mock interviews. No hand-holding.</p>
+  </div>
+
+  <!-- SETUP SCREEN -->
+  <div id="setup-screen">
+    <div class="screen-title">Configure Your Interview</div>
+
+    <div class="setup-section">
+      <label>Company Type</label>
+      <div class="option-grid" data-group="company">
+        <button class="option-btn" data-value="bigtech">Big Tech<span class="opt-sub">FAANG-style, structured</span></button>
+        <button class="option-btn" data-value="fintech">Fintech<span class="opt-sub">Regulated, metrics-heavy</span></button>
+        <button class="option-btn" data-value="startup">Startup<span class="opt-sub">Scrappy, ambiguity-heavy</span></button>
+      </div>
+    </div>
+
+    <div class="setup-section">
+      <label>Seniority Level</label>
+      <div class="option-grid" data-group="seniority">
+        <button class="option-btn" data-value="associate">Associate PM<span class="opt-sub">Entry-level</span></button>
+        <button class="option-btn" data-value="pm">Product Manager<span class="opt-sub">Mid-level</span></button>
+        <button class="option-btn" data-value="senior">Senior PM<span class="opt-sub">Experienced</span></button>
+        <button class="option-btn" data-value="group">Group PM<span class="opt-sub">Leadership</span></button>
+      </div>
+    </div>
+
+    <div class="setup-section">
+      <label>Interview Type</label>
+      <div class="option-grid" data-group="type">
+        <button class="option-btn" data-value="product_sense">Product Sense<span class="opt-sub">Design & strategy</span></button>
+        <button class="option-btn" data-value="metrics">Metrics<span class="opt-sub">Analytics & data</span></button>
+        <button class="option-btn" data-value="execution">Execution<span class="opt-sub">Roadmap & delivery</span></button>
+        <button class="option-btn" data-value="behavioral">Behavioral<span class="opt-sub">Culture & leadership</span></button>
+        <button class="option-btn" data-value="technical">Technical<span class="opt-sub">Eng collaboration</span></button>
+        <button class="option-btn" data-value="mixed">Mixed<span class="opt-sub">All dimensions</span></button>
+      </div>
+    </div>
+
+    <div class="setup-section">
+      <label>Interviewer Persona</label>
+      <div class="persona-grid" data-group="persona">
+        <button class="persona-btn selected" data-value="neutral"><span class="persona-name">Neutral PM Lead</span><span class="persona-desc">Balanced, methodical evaluation</span></button>
+        <button class="persona-btn" data-value="skeptical_eng"><span class="persona-name">Skeptical Engineer</span><span class="persona-desc">Challenges feasibility, digs into details</span></button>
+        <button class="persona-btn" data-value="business_leader"><span class="persona-name">Business Leader</span><span class="persona-desc">Revenue-focused, ROI-driven</span></button>
+        <button class="persona-btn" data-value="user_advocate"><span class="persona-name">User Advocate</span><span class="persona-desc">Empathy-first, questions assumptions</span></button>
+      </div>
+    </div>
+
+    <div class="setup-section">
+      <label>Options</label>
+      <div class="toggle-row">
+        <div class="toggle" id="stress-toggle" onclick="this.classList.toggle('on')"></div>
+        <span class="toggle-label">Stress Mode — more interruptions, tighter time pressure</span>
+      </div>
+    </div>
+
+    <button class="start-btn" id="start-btn" disabled>Start Interview</button>
+  </div>
+
+  <!-- INTERVIEW SCREEN -->
+  <div id="interview-screen" class="hidden">
+    <div class="interview-header">
+      <div class="interview-meta">
+        <span id="meta-company"></span>
+        <span id="meta-seniority"></span>
+        <span id="meta-type"></span>
+        <span id="meta-persona"></span>
+      </div>
+      <div style="display:flex;align-items:center;gap:.75rem">
+        <div class="timer" id="timer">45:00</div>
+        <button class="end-btn" id="end-btn">End Interview</button>
+      </div>
+    </div>
+    <div class="chat-area" id="chat-area"></div>
+    <div class="input-area">
+      <textarea id="user-input" placeholder="Type your answer..." rows="1"></textarea>
+      <button class="send-btn" id="send-btn">&#9654;</button>
+    </div>
+  </div>
+
+  <!-- EVALUATION SCREEN -->
+  <div id="eval-screen" class="hidden">
+    <div class="screen-title">Interview Evaluation</div>
+    <div class="overall-score" id="overall-score"></div>
+    <div class="eval-section">
+      <h2>Dimension Scores</h2>
+      <div class="score-grid" id="score-grid"></div>
+    </div>
+    <div class="eval-section">
+      <h2>Strong Signals</h2>
+      <div class="signals" id="strong-signals"></div>
+    </div>
+    <div class="eval-section">
+      <h2>Weak Signals</h2>
+      <div class="signals" id="weak-signals"></div>
+    </div>
+    <div class="eval-section">
+      <h2>Actionable Advice</h2>
+      <ul class="advice-list" id="advice-list"></ul>
+    </div>
+    <div class="eval-section">
+      <h2>Transcript Review</h2>
+      <div id="transcript-review"></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn-secondary" id="new-interview-btn">New Interview</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// PM INTERVIEW PRACTICE - CORE APPLICATION
+// ============================================================
+
+const APP = {
+  config: { company: null, seniority: null, type: null, persona: 'neutral', stressMode: false },
+  state: {
+    screen: 'setup',
+    transcript: [],
+    questionIndex: 0,
+    followUpCount: 0,
+    maxFollowUps: 0,
+    timerSeconds: 0,
+    timerInterval: null,
+    interviewStarted: false,
+    interviewEnded: false,
+    currentQuestion: null,
+    candidateScores: { problem_framing:[], depth:[], structure:[], tradeoffs:[], metrics:[], execution:[] },
+    difficultyLevel: 2,
+    totalExchanges: 0,
+    questionHistory: [],
+    usedQuestionKeys: new Set()
+  }
+};
+
+// ============================================================
+// QUESTION BANK
+// ============================================================
+const QUESTIONS = {
+  product_sense: {
+    bigtech: [
+      { q:"You're a PM at Google. Gmail's daily active users have plateaued. The VP asks you to propose a strategy to reignite growth. Walk me through your approach.", topics:["growth","strategy","metrics"], depth:"senior" },
+      { q:"Design a new product for Amazon that helps small businesses manage inventory. Start from the user problem.", topics:["0to1","customer_empathy","design"], depth:"mid" },
+      { q:"Facebook is considering launching a professional networking feature. How would you think about whether to build it?", topics:["strategy","tradeoffs","competitive"], depth:"senior" },
+      { q:"YouTube wants to increase watch time for educational content without cannibalizing entertainment engagement. How do you approach this?", topics:["tradeoffs","metrics","strategy"], depth:"mid" },
+      { q:"You're PM for Apple Maps. Google Maps dominates. What's your 2-year product strategy?", topics:["competitive","strategy","prioritization"], depth:"senior" },
+      { q:"Design a feature for Google Search that helps users with complex research tasks spanning multiple sessions.", topics:["0to1","design","customer_empathy"], depth:"mid" },
+      { q:"Instagram is losing teen users to TikTok. You have one quarter. What do you ship?", topics:["prioritization","tradeoffs","urgency"], depth:"mid" },
+    ],
+    fintech: [
+      { q:"You're PM at Stripe. Design a product that helps SaaS companies reduce involuntary churn from failed payments.", topics:["0to1","customer_empathy","metrics"], depth:"mid" },
+      { q:"A neobank wants to launch a savings product for gig workers. Walk me through the product design.", topics:["design","customer_empathy","regulation"], depth:"mid" },
+      { q:"You're at Square. Merchants are asking for lending products. How do you evaluate and design this?", topics:["strategy","risk","0to1"], depth:"senior" },
+      { q:"Design a credit scoring product for users with thin credit files in emerging markets.", topics:["0to1","customer_empathy","constraints"], depth:"senior" },
+    ],
+    startup: [
+      { q:"You're the first PM at a Series A startup building tools for remote teams. The founder wants to build everything. How do you decide what to build first?", topics:["prioritization","mvp","constraints"], depth:"mid" },
+      { q:"Your startup has 500 users and flat growth. The board wants a plan. What do you do in the next 30 days?", topics:["growth","urgency","metrics"], depth:"mid" },
+      { q:"You're building a marketplace for freelance designers. You have no supply and no demand. Solve the cold-start problem.", topics:["0to1","marketplace","strategy"], depth:"senior" },
+      { q:"A competitor just launched a feature your users have been requesting. Your team is 4 engineers. What's your move?", topics:["competitive","prioritization","constraints"], depth:"mid" },
+    ]
+  },
+  metrics: {
+    bigtech: [
+      { q:"You're PM for YouTube Shorts. Define the success metrics framework for this product.", topics:["metrics_framework","north_star","input_output"], depth:"mid" },
+      { q:"Google Search ad click-through rate dropped 8% week over week. Diagnose this.", topics:["metric_diagnosis","root_cause","data"], depth:"mid" },
+      { q:"You're running an A/B test on a new Facebook News Feed algorithm. Engagement is up 12% but time-to-first-share is down. Interpret these results.", topics:["experimentation","tradeoffs","interpretation"], depth:"senior" },
+      { q:"Define the metrics framework for a new Google Workspace collaboration feature. What's your north star?", topics:["metrics_framework","north_star"], depth:"mid" },
+      { q:"Amazon Prime subscription renewals dropped 5% this quarter. Walk me through your investigation.", topics:["metric_diagnosis","root_cause"], depth:"mid" },
+    ],
+    fintech: [
+      { q:"You're PM at a payments company. Define success metrics for a new instant transfer feature.", topics:["metrics_framework","fintech_specific"], depth:"mid" },
+      { q:"Your lending product's default rate spiked. Revenue is up. Is this good or bad? How do you investigate?", topics:["metric_diagnosis","risk","tradeoffs"], depth:"senior" },
+      { q:"Design an experiment to test whether adding a savings round-up feature increases user retention.", topics:["experimentation","design","metrics"], depth:"mid" },
+    ],
+    startup: [
+      { q:"Your SaaS product has high sign-ups but terrible activation. Define the metrics and your plan.", topics:["activation","funnel","metrics_framework"], depth:"mid" },
+      { q:"You launched a new feature last week. DAU went up but NPS went down. What's happening?", topics:["metric_diagnosis","tradeoffs","interpretation"], depth:"mid" },
+      { q:"Your startup's burn rate gives you 8 months of runway. Define the metrics that matter most right now.", topics:["metrics_framework","constraints","prioritization"], depth:"senior" },
+    ]
+  },
+  execution: {
+    bigtech: [
+      { q:"You're PM for Google Photos. Leadership wants AI-powered photo editing shipped in Q3. You have a team of 8 engineers. Build me the roadmap.", topics:["roadmap","dependencies","sequencing"], depth:"mid" },
+      { q:"Requirements for your project just changed mid-sprint. Your engineering lead is frustrated. How do you handle this?", topics:["ambiguity","stakeholder","communication"], depth:"mid" },
+      { q:"You need to launch a new feature across iOS, Android, and Web simultaneously. How do you coordinate and what's your MVP?", topics:["mvp","coordination","sequencing"], depth:"mid" },
+      { q:"Your team has been working on a feature for 3 months. Early data shows it's not moving the needle. What do you do?", topics:["decision_making","sunk_cost","pivoting"], depth:"senior" },
+    ],
+    fintech: [
+      { q:"You're launching a new payment method in a regulated market. Walk me through your execution plan.", topics:["regulation","dependencies","risk"], depth:"senior" },
+      { q:"Your compliance team flagged a blocker 2 weeks before launch. How do you proceed?", topics:["ambiguity","stakeholder","urgency"], depth:"mid" },
+    ],
+    startup: [
+      { q:"You have 3 engineers, a designer who's part-time, and a massive backlog. Prioritize and plan the next 6 weeks.", topics:["prioritization","constraints","mvp"], depth:"mid" },
+      { q:"A key engineer just quit. You have a launch commitment in 4 weeks. What's your plan?", topics:["crisis","constraints","replanning"], depth:"mid" },
+    ]
+  },
+  behavioral: {
+    bigtech: [
+      { q:"Tell me about a time you had to make a product decision with incomplete data. What did you do?", topics:["ambiguity","decision_making","ownership"], depth:"mid" },
+      { q:"Describe a situation where you disagreed with your engineering lead on technical approach. How did you resolve it?", topics:["conflict","influence","collaboration"], depth:"mid" },
+      { q:"Tell me about a product you launched that failed. What did you learn?", topics:["failure","ownership","learning"], depth:"mid" },
+      { q:"Give me an example of when you had to influence a senior stakeholder who was resistant to your idea.", topics:["influence","communication","leadership"], depth:"senior" },
+      { q:"Describe a time you had to make an ethical trade-off in a product decision.", topics:["ethics","judgment","values"], depth:"senior" },
+    ],
+    fintech: [
+      { q:"Tell me about a time you balanced user experience with regulatory requirements.", topics:["tradeoffs","regulation","judgment"], depth:"mid" },
+      { q:"Describe a situation where a compliance requirement conflicted with your product vision.", topics:["conflict","ethics","stakeholder"], depth:"senior" },
+    ],
+    startup: [
+      { q:"Tell me about a time you had to do something completely outside your job description to make a product succeed.", topics:["ownership","scrappiness","adaptability"], depth:"mid" },
+      { q:"Describe a time you had to say no to the CEO or founder. How did you approach it?", topics:["influence","judgment","communication"], depth:"senior" },
+    ]
+  },
+  technical: {
+    bigtech: [
+      { q:"You're working with engineers on a real-time notification system. They propose two architectures: polling vs. WebSockets. How do you evaluate the trade-offs as a PM?", topics:["system_design","tradeoffs","eng_collaboration"], depth:"mid" },
+      { q:"Your service has a 99.9% SLA but you want to add a feature that could impact latency. How do you work with the engineering team on this?", topics:["reliability","tradeoffs","collaboration"], depth:"senior" },
+      { q:"Your product needs to integrate with a third-party API that has rate limits and occasional downtime. How do you factor this into your product decisions?", topics:["api","constraints","planning"], depth:"mid" },
+      { q:"Engineers say the feature you want will take 6 months due to technical debt. How do you approach this conversation?", topics:["tech_debt","negotiation","prioritization"], depth:"mid" },
+    ],
+    fintech: [
+      { q:"Your payments system needs to handle 10x traffic during Black Friday. How do you work with engineering to prepare?", topics:["scalability","planning","collaboration"], depth:"mid" },
+    ],
+    startup: [
+      { q:"Your startup needs to decide between building on a third-party platform vs. building infrastructure in-house. Frame this decision.", topics:["build_buy","tradeoffs","strategy"], depth:"senior" },
+      { q:"Your CTO wants to rewrite the backend in a new language. Product roadmap will slip 2 months. How do you evaluate this?", topics:["tech_debt","tradeoffs","stakeholder"], depth:"senior" },
+    ]
+  }
+};
+
+// ============================================================
+// FOLLOW-UP & PUSHBACK TEMPLATES
+// ============================================================
+const FOLLOWUPS = {
+  vague: [
+    "That's quite high-level. Can you be more specific about the mechanics of how that would work?",
+    "I'm not following the specifics. Walk me through the concrete steps.",
+    "You're staying at a surface level. What exactly would you build? Be precise.",
+    "That could mean a lot of things. Narrow it down for me.",
+    "I need more specificity. Give me the details."
+  ],
+  why: [
+    "Why that approach over the alternatives?",
+    "What's driving that choice? Convince me.",
+    "Why is that the right priority? What did you consider and reject?",
+    "Why would a user care about that? Walk me through their mindset.",
+    "What evidence supports that direction?"
+  ],
+  metrics: [
+    "How would you measure whether that's working?",
+    "What's the success metric? And what's an acceptable threshold?",
+    "You haven't mentioned metrics. How do you know if this succeeds or fails?",
+    "Define success for what you just described. Be specific with numbers.",
+    "What's your north star metric for this? And what are the guardrail metrics?"
+  ],
+  tradeoffs: [
+    "What are you giving up with that approach?",
+    "Every choice has a trade-off. What's the downside here?",
+    "Who loses in this scenario? Have you considered the second-order effects?",
+    "What's the biggest risk of going this direction?",
+    "You're presenting this as all upside. Challenge your own assumption."
+  ],
+  depth: [
+    "Go deeper on that point. You're scratching the surface.",
+    "Unpack that. What does that actually look like in practice?",
+    "I want to double-click on that. Explain the mechanism.",
+    "That's the textbook answer. What would YOU actually do?",
+    "You mentioned that quickly. I think there's more there. Elaborate."
+  ],
+  constraint: [
+    "New constraint: your timeline just got cut in half. What changes?",
+    "What if I told you the engineering team is 50% of what you assumed?",
+    "Plot twist: your main competitor just launched exactly what you described. Now what?",
+    "The CEO just told you this needs to also work for enterprise customers. How does your approach change?",
+    "Legal just flagged a compliance issue with your core approach. Adapt.",
+    "What if your key assumption about user behavior is wrong? What's your fallback?"
+  ],
+  pushback: [
+    "I'm not convinced. A strong candidate would challenge that assumption.",
+    "That reasoning has a gap. Do you see it?",
+    "I've heard that answer from every candidate. What makes your thinking different?",
+    "You're optimizing for the wrong thing. Think about what actually matters here.",
+    "That's a reasonable answer but not a strong one. Push yourself.",
+    "An experienced PM would poke holes in that. Try again."
+  ],
+  time_pressure: [
+    "We have about 5 minutes left. Let's wrap up this thread — give me the key takeaway.",
+    "We're running short on time. Summarize your recommendation.",
+    "Clock is ticking. What's your final answer on this?",
+    "We need to move on. Land this point concisely.",
+  ],
+  skeptical_eng: [
+    "How would you actually implement that? The engineering complexity is non-trivial.",
+    "That's going to create technical debt. Are you factoring that in?",
+    "You're underestimating the backend work here. What's the real effort?",
+    "That architecture won't scale. What's your Plan B?",
+    "Engineers will push back on that timeline. How do you respond?"
+  ],
+  business_leader: [
+    "What's the revenue impact? Give me a rough estimate.",
+    "How does this move the bottom line? I need to see the business case.",
+    "The board cares about growth and margins. Connect this to those numbers.",
+    "What's the TAM for this? Is it worth the investment?",
+    "Our investors will ask about unit economics. What's your answer?"
+  ],
+  user_advocate: [
+    "Have you actually talked to users about this? What did they say?",
+    "You're making assumptions about user behavior. What research backs this up?",
+    "Put yourself in the user's shoes. Would you actually use this?",
+    "What about accessibility? You haven't mentioned it.",
+    "That optimizes for engagement, not user value. Is that the right trade-off?"
+  ]
+};
+
+// ============================================================
+// PERSONA BEHAVIORS
+// ============================================================
+const PERSONAS = {
+  neutral: {
+    name: "Neutral PM Lead",
+    style: "balanced",
+    biases: ["metrics","tradeoffs","depth"],
+    interruptRate: 0.15,
+    pushbackRate: 0.2,
+    constraintRate: 0.1
+  },
+  skeptical_eng: {
+    name: "Skeptical Engineer",
+    style: "technical",
+    biases: ["skeptical_eng","tradeoffs","depth"],
+    interruptRate: 0.25,
+    pushbackRate: 0.35,
+    constraintRate: 0.15
+  },
+  business_leader: {
+    name: "Business Leader",
+    style: "business",
+    biases: ["business_leader","metrics","tradeoffs"],
+    interruptRate: 0.2,
+    pushbackRate: 0.3,
+    constraintRate: 0.1
+  },
+  user_advocate: {
+    name: "User Advocate",
+    style: "empathy",
+    biases: ["user_advocate","depth","why"],
+    interruptRate: 0.15,
+    pushbackRate: 0.25,
+    constraintRate: 0.08
+  }
+};
+
+// ============================================================
+// EVALUATION ENGINE
+// ============================================================
+const EVAL_DIMENSIONS = [
+  { key:"problem_framing", name:"Problem Framing", desc:"Ability to define and scope the problem clearly before jumping to solutions" },
+  { key:"depth", name:"Depth of Thinking", desc:"Going beyond surface-level answers with nuanced, specific reasoning" },
+  { key:"structure", name:"Structured Communication", desc:"Organized, logical flow with clear frameworks applied appropriately" },
+  { key:"tradeoffs", name:"Trade-off Awareness", desc:"Identifying and articulating costs, risks, and alternatives" },
+  { key:"metrics", name:"Metrics Thinking", desc:"Defining measurable success criteria and using data in reasoning" },
+  { key:"execution", name:"Execution Realism", desc:"Practical, achievable plans grounded in real-world constraints" }
+];
+
+// ============================================================
+// UI CONTROLLER
+// ============================================================
+
+// Setup selections
+document.querySelectorAll('.option-grid .option-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const group = btn.closest('[data-group]').dataset.group;
+    btn.closest('[data-group]').querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    APP.config[group] = btn.dataset.value;
+    checkReady();
+  });
+});
+
+document.querySelectorAll('.persona-grid .persona-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.persona-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    APP.config.persona = btn.dataset.value;
+  });
+});
+
+function checkReady() {
+  const ready = APP.config.company && APP.config.seniority && APP.config.type;
+  document.getElementById('start-btn').disabled = !ready;
+}
+
+document.getElementById('start-btn').addEventListener('click', startInterview);
+document.getElementById('end-btn').addEventListener('click', () => endInterview());
+document.getElementById('send-btn').addEventListener('click', sendMessage);
+document.getElementById('new-interview-btn').addEventListener('click', resetApp);
+
+const textarea = document.getElementById('user-input');
+textarea.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+});
+textarea.addEventListener('input', () => {
+  textarea.style.height = 'auto';
+  textarea.style.height = Math.min(textarea.scrollHeight, 160) + 'px';
+});
+
+// ============================================================
+// INTERVIEW CONTROLLER
+// ============================================================
+
+function startInterview() {
+  APP.config.stressMode = document.getElementById('stress-toggle').classList.contains('on');
+
+  // Set timing
+  const baseMins = APP.config.stressMode ? 30 : 45;
+  APP.state.timerSeconds = baseMins * 60;
+  APP.state.maxFollowUps = APP.config.stressMode ? 2 : 3;
+
+  // Show interview screen
+  document.getElementById('setup-screen').classList.add('hidden');
+  document.getElementById('interview-screen').classList.remove('hidden');
+
+  // Set meta
+  const labels = {
+    bigtech:'Big Tech', fintech:'Fintech', startup:'Startup',
+    associate:'Associate PM', pm:'Product Manager', senior:'Senior PM', group:'Group PM',
+    product_sense:'Product Sense', metrics:'Metrics & Analytics', execution:'Execution',
+    behavioral:'Behavioral', technical:'Technical', mixed:'Mixed'
+  };
+  document.getElementById('meta-company').textContent = labels[APP.config.company];
+  document.getElementById('meta-seniority').textContent = labels[APP.config.seniority];
+  document.getElementById('meta-type').textContent = labels[APP.config.type];
+  document.getElementById('meta-persona').textContent = PERSONAS[APP.config.persona].name;
+
+  // Start timer
+  updateTimerDisplay();
+  APP.state.timerInterval = setInterval(tickTimer, 1000);
+
+  // Opening
+  APP.state.interviewStarted = true;
+  const persona = PERSONAS[APP.config.persona];
+  const openings = {
+    neutral: `Good. Let's get started. I'll be conducting a ${labels[APP.config.type].toLowerCase()} interview. I'll ask questions, and I expect structured, specific answers. I may push back or ask follow-ups. Ready?`,
+    skeptical_eng: `Alright. I'm coming from the engineering side, so I'll be particularly interested in feasibility and technical grounding. Don't hand-wave past implementation details. Let's begin.`,
+    business_leader: `Let's jump in. I care about impact — revenue, growth, margins. Make sure everything you propose connects to business outcomes. Let's go.`,
+    user_advocate: `Let's start. I'm going to be focused on the user throughout this conversation. If you can't explain who benefits and why, we have a problem. Ready?`
+  };
+
+  addMessage('interviewer', openings[APP.config.persona]);
+
+  setTimeout(() => {
+    askNextQuestion();
+  }, 1500);
+}
+
+function tickTimer() {
+  APP.state.timerSeconds--;
+  updateTimerDisplay();
+
+  // Time pressure messages
+  const mins = Math.floor(APP.state.timerSeconds / 60);
+  const timerEl = document.getElementById('timer');
+
+  if (mins <= 5 && mins > 2) {
+    timerEl.className = 'timer warning';
+    if (mins === 5 && APP.state.timerSeconds % 60 === 0 && !APP.state._warned5) {
+      APP.state._warned5 = true;
+      if (APP.state.transcript.length > 2) {
+        addMessage('interviewer', pickRandom(FOLLOWUPS.time_pressure));
+      }
+    }
+  } else if (mins <= 2) {
+    timerEl.className = 'timer critical';
+    if (mins === 2 && APP.state.timerSeconds % 60 === 0 && !APP.state._warned2) {
+      APP.state._warned2 = true;
+      addMessage('interviewer', "Two minutes left. Give me your final recommendation.");
+    }
+  }
+
+  if (APP.state.timerSeconds <= 0) {
+    endInterview();
+  }
+}
+
+function updateTimerDisplay() {
+  const m = Math.floor(APP.state.timerSeconds / 60);
+  const s = APP.state.timerSeconds % 60;
+  document.getElementById('timer').textContent = `${m}:${s.toString().padStart(2,'0')}`;
+}
+
+function getAvailableQuestions() {
+  const type = APP.config.type;
+  const company = APP.config.company;
+
+  if (type === 'mixed') {
+    const allTypes = ['product_sense','metrics','execution','behavioral','technical'];
+    let pool = [];
+    allTypes.forEach(t => {
+      if (QUESTIONS[t] && QUESTIONS[t][company]) pool = pool.concat(QUESTIONS[t][company].map(q => ({...q, _type:t})));
+    });
+    return pool;
+  }
+
+  const bank = QUESTIONS[type];
+  if (!bank) return [];
+  return (bank[company] || []).map(q => ({...q, _type:type}));
+}
+
+function pickQuestion() {
+  const pool = getAvailableQuestions();
+  const unused = pool.filter(q => !APP.state.usedQuestionKeys.has(q.q));
+  const available = unused.length > 0 ? unused : pool;
+
+  // Filter by difficulty/depth
+  const seniorityDepth = { associate:'mid', pm:'mid', senior:'senior', group:'senior' };
+  const targetDepth = seniorityDepth[APP.config.seniority];
+  const matched = available.filter(q => q.depth === targetDepth);
+  const chosen = pickRandom(matched.length > 0 ? matched : available);
+
+  if (chosen) APP.state.usedQuestionKeys.add(chosen.q);
+  return chosen;
+}
+
+function askNextQuestion() {
+  const q = pickQuestion();
+  if (!q) {
+    endInterview();
+    return;
+  }
+  APP.state.currentQuestion = q;
+  APP.state.followUpCount = 0;
+  APP.state.questionIndex++;
+  APP.state.questionHistory.push(q);
+  addMessage('interviewer', q.q);
+}
+
+function sendMessage() {
+  const input = document.getElementById('user-input');
+  const text = input.value.trim();
+  if (!text || APP.state.interviewEnded) return;
+
+  input.value = '';
+  input.style.height = 'auto';
+  addMessage('candidate', text);
+  APP.state.totalExchanges++;
+
+  // Disable input while "thinking"
+  input.disabled = true;
+  document.getElementById('send-btn').disabled = true;
+
+  // Show typing indicator
+  showTyping();
+
+  // Analyze and respond
+  const delay = 800 + Math.random() * 1200;
+  setTimeout(() => {
+    hideTyping();
+    input.disabled = false;
+    document.getElementById('send-btn').disabled = false;
+    input.focus();
+    processResponse(text);
+  }, delay);
+}
+
+function processResponse(answer) {
+  if (APP.state.interviewEnded) return;
+
+  const analysis = analyzeAnswer(answer);
+  const persona = PERSONAS[APP.config.persona];
+  const stressMult = APP.config.stressMode ? 1.6 : 1;
+
+  // Record scores
+  Object.keys(analysis.scores).forEach(k => {
+    if (APP.state.candidateScores[k]) {
+      APP.state.candidateScores[k].push(analysis.scores[k]);
+    }
+  });
+
+  // Decide response type
+  const roll = Math.random();
+  const followUpBudget = APP.state.maxFollowUps;
+  const canFollowUp = APP.state.followUpCount < followUpBudget;
+
+  // Should we interrupt / pushback?
+  if (analysis.isVague && canFollowUp) {
+    APP.state.followUpCount++;
+    addMessage('interviewer', pickRandom(FOLLOWUPS.vague));
+    return;
+  }
+
+  if (roll < persona.pushbackRate * stressMult && analysis.hasWeakAssumption && canFollowUp) {
+    APP.state.followUpCount++;
+    addMessage('interviewer', pickRandom(FOLLOWUPS.pushback));
+    return;
+  }
+
+  if (analysis.missingMetrics && canFollowUp && roll < 0.6) {
+    APP.state.followUpCount++;
+    addMessage('interviewer', pickRandom(FOLLOWUPS.metrics));
+    return;
+  }
+
+  if (analysis.missingTradeoffs && canFollowUp && roll < 0.5) {
+    APP.state.followUpCount++;
+    addMessage('interviewer', pickRandom(FOLLOWUPS.tradeoffs));
+    return;
+  }
+
+  // Persona-specific follow-ups
+  if (canFollowUp && roll < 0.4) {
+    const biasType = pickRandom(persona.biases);
+    if (FOLLOWUPS[biasType]) {
+      APP.state.followUpCount++;
+      addMessage('interviewer', pickRandom(FOLLOWUPS[biasType]));
+      return;
+    }
+  }
+
+  // Depth follow-up
+  if (analysis.isShallow && canFollowUp) {
+    APP.state.followUpCount++;
+    addMessage('interviewer', pickRandom(FOLLOWUPS.depth));
+    return;
+  }
+
+  // Add constraint mid-answer sometimes
+  if (roll < persona.constraintRate * stressMult && canFollowUp) {
+    APP.state.followUpCount++;
+    addMessage('interviewer', pickRandom(FOLLOWUPS.constraint));
+    return;
+  }
+
+  // Why follow-up
+  if (canFollowUp && roll < 0.3) {
+    APP.state.followUpCount++;
+    addMessage('interviewer', pickRandom(FOLLOWUPS.why));
+    return;
+  }
+
+  // Move to next question
+  const transitions = [
+    "Alright. Let's move on.",
+    "Understood. Next question.",
+    "Noted. Moving forward.",
+    "Let's shift gears.",
+    "Okay. Different topic."
+  ];
+
+  // Adaptive difficulty
+  const avgScore = Object.values(analysis.scores).reduce((a,b)=>a+b,0) / Object.values(analysis.scores).length;
+  if (avgScore >= 4) APP.state.difficultyLevel = Math.min(5, APP.state.difficultyLevel + 0.5);
+  else if (avgScore <= 2) APP.state.difficultyLevel = Math.max(1, APP.state.difficultyLevel - 0.3);
+
+  // Check if we should end (enough questions asked)
+  if (APP.state.questionIndex >= 4 && APP.state.timerSeconds < APP.state.timerSeconds * 0.3) {
+    endInterview();
+    return;
+  }
+
+  addMessage('interviewer', pickRandom(transitions));
+  setTimeout(() => askNextQuestion(), 1000);
+}
+
+function analyzeAnswer(text) {
+  const words = text.split(/\s+/).length;
+  const sentences = text.split(/[.!?]+/).filter(s => s.trim()).length;
+
+  // Heuristic analysis
+  const hasFramework = /first|second|third|framework|approach|step|phase|pillar|dimension|bucket|category/i.test(text);
+  const hasMetrics = /metric|measure|kpi|conversion|retention|revenue|dau|mau|nps|engagement|funnel|rate|percentage|growth|churn|ltv|arpu|cac/i.test(text);
+  const hasTradeoffs = /trade.?off|downside|risk|cost|however|alternatively|on the other hand|versus|vs\.|con(s)?|drawback|sacrifice|compromise/i.test(text);
+  const hasUserFocus = /user|customer|persona|need|pain point|problem|experience|journey|empathy|research|interview/i.test(text);
+  const hasSpecifics = /for example|specifically|concretely|such as|like when|in practice|for instance/i.test(text);
+  const hasData = /data|experiment|a\/b test|hypothesis|statistical|sample|cohort|segment|analysis/i.test(text);
+  const hasPrioritization = /prioriti|impact|effort|ice|rice|moscow|must.?have|nice.?to.?have|p0|p1|urgent|important/i.test(text);
+  const hasTechnical = /api|database|backend|frontend|infrastructure|scalab|latency|cache|architecture|system|microservice|endpoint/i.test(text);
+
+  const isVague = words < 30 && !hasSpecifics;
+  const isShallow = words < 60 && !hasFramework && !hasSpecifics;
+  const hasWeakAssumption = !hasData && !hasUserFocus && words > 40;
+  const missingMetrics = !hasMetrics && words > 50;
+  const missingTradeoffs = !hasTradeoffs && words > 60;
+
+  // Score calculation
+  const scores = {};
+
+  // Problem framing
+  scores.problem_framing = 2;
+  if (hasFramework) scores.problem_framing += 1;
+  if (hasUserFocus) scores.problem_framing += 1;
+  if (words > 80 && hasSpecifics) scores.problem_framing += 1;
+  scores.problem_framing = Math.min(5, scores.problem_framing);
+
+  // Depth
+  scores.depth = 2;
+  if (hasSpecifics) scores.depth += 1;
+  if (words > 100) scores.depth += 0.5;
+  if (hasData) scores.depth += 0.5;
+  if (hasTechnical) scores.depth += 0.5;
+  if (!isShallow) scores.depth += 0.5;
+  scores.depth = Math.min(5, Math.round(scores.depth));
+
+  // Structure
+  scores.structure = 2;
+  if (hasFramework) scores.structure += 1.5;
+  if (sentences >= 4) scores.structure += 0.5;
+  if (hasPrioritization) scores.structure += 0.5;
+  if (words > 60 && words < 300) scores.structure += 0.5;
+  scores.structure = Math.min(5, Math.round(scores.structure));
+
+  // Tradeoffs
+  scores.tradeoffs = 1.5;
+  if (hasTradeoffs) scores.tradeoffs += 2;
+  if (hasSpecifics && hasTradeoffs) scores.tradeoffs += 0.5;
+  if (hasPrioritization) scores.tradeoffs += 0.5;
+  scores.tradeoffs = Math.min(5, Math.round(scores.tradeoffs));
+
+  // Metrics
+  scores.metrics = 1.5;
+  if (hasMetrics) scores.metrics += 2;
+  if (hasData) scores.metrics += 1;
+  if (hasMetrics && hasSpecifics) scores.metrics += 0.5;
+  scores.metrics = Math.min(5, Math.round(scores.metrics));
+
+  // Execution
+  scores.execution = 2;
+  if (hasPrioritization) scores.execution += 1;
+  if (hasSpecifics) scores.execution += 0.5;
+  if (hasTechnical) scores.execution += 0.5;
+  if (hasTradeoffs) scores.execution += 0.5;
+  if (words > 80) scores.execution += 0.5;
+  scores.execution = Math.min(5, Math.round(scores.execution));
+
+  return { scores, isVague, isShallow, hasWeakAssumption, missingMetrics, missingTradeoffs, hasFramework, hasMetrics, hasTradeoffs, hasUserFocus, hasSpecifics, wordCount: words };
+}
+
+function endInterview() {
+  if (APP.state.interviewEnded) return;
+  APP.state.interviewEnded = true;
+  clearInterval(APP.state.timerInterval);
+
+  const closings = [
+    "That's all the time we have. Thank you for your answers. Let me put together my evaluation.",
+    "We're done. I'll compile my assessment now.",
+    "Time's up. I have enough to evaluate. Stand by for your results."
+  ];
+  addMessage('interviewer', pickRandom(closings));
+
+  setTimeout(() => showEvaluation(), 2000);
+}
+
+// ============================================================
+// EVALUATION RENDERER
+// ============================================================
+
+function showEvaluation() {
+  document.getElementById('interview-screen').classList.add('hidden');
+  document.getElementById('eval-screen').classList.remove('hidden');
+
+  const finalScores = {};
+  EVAL_DIMENSIONS.forEach(dim => {
+    const arr = APP.state.candidateScores[dim.key];
+    if (arr.length > 0) {
+      finalScores[dim.key] = Math.round(arr.reduce((a,b)=>a+b,0) / arr.length);
+    } else {
+      finalScores[dim.key] = 2;
+    }
+    finalScores[dim.key] = Math.max(1, Math.min(5, finalScores[dim.key]));
+  });
+
+  // Overall
+  const overall = (Object.values(finalScores).reduce((a,b)=>a+b,0) / Object.values(finalScores).length).toFixed(1);
+  const verdicts = {
+    1: "Significant gaps. Needs fundamental practice.",
+    2: "Below bar. Needs structured preparation.",
+    3: "Mixed signals. Some areas solid, others need work.",
+    4: "Above bar. Strong performance with minor gaps.",
+    5: "Exceptional. Would advance to next round."
+  };
+  const verdictKey = Math.round(parseFloat(overall));
+
+  document.getElementById('overall-score').innerHTML = `
+    <div class="big-score">${overall}</div>
+    <div class="score-label">Overall Score (out of 5)</div>
+    <div class="verdict">${verdicts[verdictKey] || verdicts[3]}</div>
+  `;
+
+  // Dimension scores
+  const grid = document.getElementById('score-grid');
+  grid.innerHTML = '';
+  const scoreComments = {
+    1: "Did not demonstrate this skill.",
+    2: "Attempted but fell short of expectations.",
+    3: "Adequate. Met basic expectations.",
+    4: "Strong. Exceeded expectations in most areas.",
+    5: "Exceptional. Would stand out among candidates."
+  };
+
+  EVAL_DIMENSIONS.forEach(dim => {
+    const s = finalScores[dim.key];
+    grid.innerHTML += `
+      <div class="score-card">
+        <div class="dim-name">${dim.name}</div>
+        <div class="score-bar-track"><div class="score-bar-fill s${s}"></div></div>
+        <div class="score-val">${s}/5 — ${scoreComments[s]}</div>
+        <div class="score-comment">${dim.desc}</div>
+      </div>
+    `;
+  });
+
+  // Signals
+  const strongEl = document.getElementById('strong-signals');
+  const weakEl = document.getElementById('weak-signals');
+  strongEl.innerHTML = '';
+  weakEl.innerHTML = '';
+
+  const strongSignals = [];
+  const weakSignals = [];
+
+  if (finalScores.problem_framing >= 4) strongSignals.push("Clear problem framing before jumping to solutions — this shows discipline.");
+  if (finalScores.structure >= 4) strongSignals.push("Well-structured communication. Easy to follow your reasoning.");
+  if (finalScores.metrics >= 4) strongSignals.push("Strong metrics intuition. You connected proposals to measurable outcomes.");
+  if (finalScores.tradeoffs >= 4) strongSignals.push("Good trade-off awareness. You acknowledged costs and alternatives.");
+  if (finalScores.depth >= 4) strongSignals.push("Depth of reasoning was above average. You went beyond surface-level answers.");
+  if (finalScores.execution >= 4) strongSignals.push("Execution plans felt grounded in reality.");
+
+  if (finalScores.problem_framing <= 2) weakSignals.push("Jumped to solutions without framing the problem. Interviewers notice this immediately.");
+  if (finalScores.structure <= 2) weakSignals.push("Answers lacked structure. Use frameworks, but apply them to the specific problem — don't recite them.");
+  if (finalScores.metrics <= 2) weakSignals.push("Metrics were absent or vague. Every PM answer should connect to measurable outcomes.");
+  if (finalScores.tradeoffs <= 2) weakSignals.push("No trade-off discussion. Real PMs make hard choices. Show you can weigh competing options.");
+  if (finalScores.depth <= 2) weakSignals.push("Answers stayed surface-level. Interviewers want to see you can go deep when probed.");
+  if (finalScores.execution <= 2) weakSignals.push("Execution plans were hand-wavy. Be specific about what you'd ship, when, and why in that order.");
+
+  if (APP.state.totalExchanges < 4) weakSignals.push("Very few substantive exchanges. In a real interview, brevity without depth signals lack of preparation.");
+  if (strongSignals.length === 0) strongSignals.push("Keep practicing. Strong signals will emerge as you develop more structured thinking patterns.");
+
+  strongSignals.forEach(s => strongEl.innerHTML += `<div class="signal strong">${s}</div>`);
+  weakSignals.forEach(s => weakEl.innerHTML += `<div class="signal weak">${s}</div>`);
+
+  // Advice
+  const adviceEl = document.getElementById('advice-list');
+  adviceEl.innerHTML = '';
+  const advice = [];
+
+  if (finalScores.problem_framing <= 3) {
+    advice.push("<strong>Problem Framing:</strong> Before answering any question, spend 30 seconds articulating the problem in your own words. Ask clarifying questions. \"Let me make sure I understand the problem...\" is always a strong opening.");
+  }
+  if (finalScores.structure <= 3) {
+    advice.push("<strong>Structure:</strong> Practice the \"3-bucket\" approach: break every answer into 3 dimensions. Announce your structure upfront. \"I'll think about this across three dimensions: user impact, technical feasibility, and business value.\"");
+  }
+  if (finalScores.metrics <= 3) {
+    advice.push("<strong>Metrics:</strong> For every feature or decision, immediately define a north star metric and 2-3 supporting metrics. Practice connecting qualitative goals to quantitative measures.");
+  }
+  if (finalScores.tradeoffs <= 3) {
+    advice.push("<strong>Trade-offs:</strong> After presenting any recommendation, force yourself to say \"The trade-off here is...\" Even if the interviewer doesn't ask, surfacing trade-offs proactively signals maturity.");
+  }
+  if (finalScores.depth <= 3) {
+    advice.push("<strong>Depth:</strong> When you make a claim, immediately follow with a concrete example. \"For example...\" or \"Specifically...\" forces you out of generic territory into credible specifics.");
+  }
+  if (finalScores.execution <= 3) {
+    advice.push("<strong>Execution:</strong> Practice giving phased plans: Phase 1 (MVP in 2 weeks), Phase 2 (iterate in 6 weeks), Phase 3 (scale). Include team composition and dependencies.");
+  }
+
+  if (advice.length === 0) {
+    advice.push("<strong>Overall:</strong> Solid performance. To push from good to exceptional: anticipate the interviewer's next question and address it proactively. Show you're thinking two steps ahead.");
+  }
+
+  advice.forEach(a => adviceEl.innerHTML += `<li>${a}</li>`);
+
+  // Transcript review with annotations
+  const reviewEl = document.getElementById('transcript-review');
+  reviewEl.innerHTML = '';
+  APP.state.transcript.forEach((msg, i) => {
+    let annotation = '';
+    if (msg.role === 'candidate') {
+      const a = analyzeAnswer(msg.text);
+      const notes = [];
+      if (a.isVague) notes.push("This answer was too vague. Add specifics and examples.");
+      if (a.isShallow) notes.push("Surface-level response. Go deeper with mechanisms and reasoning.");
+      if (a.missingMetrics) notes.push("No metrics mentioned. Connect your answer to measurable outcomes.");
+      if (a.missingTradeoffs) notes.push("Missing trade-off discussion. Every proposal has costs.");
+      if (a.hasFramework) notes.push("Good use of structure.");
+      if (a.hasUserFocus) notes.push("Good user-centric thinking.");
+      if (a.hasSpecifics) notes.push("Good specificity.");
+      if (notes.length > 0) annotation = notes.join(' ');
+    }
+    reviewEl.innerHTML += `
+      <div class="transcript-entry">
+        <div class="te-role ${msg.role}">${msg.role === 'interviewer' ? 'Interviewer' : 'You'}</div>
+        <div class="te-text">${escapeHtml(msg.text)}</div>
+        ${annotation ? `<div class="te-annotation">${annotation}</div>` : ''}
+      </div>
+    `;
+  });
+}
+
+// ============================================================
+// CHAT HELPERS
+// ============================================================
+
+function addMessage(role, text) {
+  APP.state.transcript.push({ role, text, time: new Date() });
+
+  const area = document.getElementById('chat-area');
+  const div = document.createElement('div');
+  div.className = `msg ${role}`;
+
+  const now = new Date();
+  const timeStr = `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+
+  div.innerHTML = `
+    <div class="msg-sender">${role === 'interviewer' ? PERSONAS[APP.config.persona].name : 'You'}</div>
+    <div class="msg-body">${escapeHtml(text)}</div>
+    <div class="msg-time">${timeStr}</div>
+  `;
+  area.appendChild(div);
+  area.scrollTop = area.scrollHeight;
+}
+
+function showTyping() {
+  const area = document.getElementById('chat-area');
+  const div = document.createElement('div');
+  div.id = 'typing';
+  div.className = 'msg interviewer';
+  div.innerHTML = `
+    <div class="msg-sender">${PERSONAS[APP.config.persona].name}</div>
+    <div class="typing-indicator"><span></span><span></span><span></span></div>
+  `;
+  area.appendChild(div);
+  area.scrollTop = area.scrollHeight;
+}
+
+function hideTyping() {
+  const el = document.getElementById('typing');
+  if (el) el.remove();
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+function pickRandom(arr) {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function resetApp() {
+  // Reset state
+  APP.config = { company: null, seniority: null, type: null, persona: 'neutral', stressMode: false };
+  APP.state = {
+    screen: 'setup',
+    transcript: [],
+    questionIndex: 0,
+    followUpCount: 0,
+    maxFollowUps: 0,
+    timerSeconds: 0,
+    timerInterval: null,
+    interviewStarted: false,
+    interviewEnded: false,
+    currentQuestion: null,
+    candidateScores: { problem_framing:[], depth:[], structure:[], tradeoffs:[], metrics:[], execution:[] },
+    difficultyLevel: 2,
+    totalExchanges: 0,
+    questionHistory: [],
+    usedQuestionKeys: new Set()
+  };
+
+  // Reset UI
+  document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+  document.querySelectorAll('.persona-btn').forEach(b => b.classList.remove('selected'));
+  document.querySelector('.persona-btn[data-value="neutral"]').classList.add('selected');
+  document.getElementById('stress-toggle').classList.remove('on');
+  document.getElementById('start-btn').disabled = true;
+  document.getElementById('chat-area').innerHTML = '';
+  document.getElementById('user-input').value = '';
+  document.getElementById('timer').className = 'timer';
+
+  // Show setup
+  document.getElementById('eval-screen').classList.add('hidden');
+  document.getElementById('interview-screen').classList.add('hidden');
+  document.getElementById('setup-screen').classList.remove('hidden');
+}
+</script>
+</body>
+</html>
