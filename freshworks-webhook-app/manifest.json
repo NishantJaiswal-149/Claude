@@ -21,7 +21,7 @@
   },
   "whitelisted-domains": [],
   "engines": {
-    "node": "18.x",
-    "fdk": "9.x"
+    "node": "18.0.0",
+    "fdk": "9.0.0"
   }
 }
