@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://static.freshdev.io/fdk/2.0/assets/fresh_client.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f5f7f9;
+      color: #1b2a4a;
+      padding: 24px;
+    }
+    .form-container {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    h2 {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: #1b2a4a;
+    }
+    .section-desc {
+      font-size: 13px;
+      color: #92a2b1;
+      margin-bottom: 20px;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: #475867;
+      margin-bottom: 4px;
+    }
+    .form-group .hint {
+      font-size: 12px;
+      color: #92a2b1;
+      margin-bottom: 8px;
+    }
+    .form-group input[type="text"],
+    .form-group input[type="password"],
+    .form-group select {
+      width: 100%;
+      padding: 8px 12px;
+      font-size: 14px;
+      border: 1px solid #cfd7df;
+      border-radius: 4px;
+      background: #fff;
+      color: #1b2a4a;
+      transition: border-color 0.15s;
+    }
+    .form-group input:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: #2c5cc5;
+      box-shadow: 0 0 0 2px rgba(44, 92, 197, 0.15);
+    }
+    input::placeholder { color: #b0bec5; }
+    .inline-row {
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+    }
+    .inline-row .form-group { flex: 1; margin-bottom: 0; }
+    .inline-row .form-group:last-child { flex: 0 0 auto; }
+    .btn {
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.15s;
+    }
+    .btn-primary {
+      background: #2c5cc5;
+      color: #fff;
+    }
+    .btn-primary:hover { background: #264db0; }
+    .btn-primary:disabled {
+      background: #a3bffa;
+      cursor: not-allowed;
+    }
+    .divider {
+      border: none;
+      border-top: 1px solid #ebeff3;
+      margin: 24px 0;
+    }
+    .status-msg {
+      font-size: 12px;
+      padding: 4px 0;
+      margin-top: 4px;
+    }
+    .status-msg.loading { color: #2c5cc5; }
+    .status-msg.error { color: #d72d30; }
+    .status-msg.success { color: #1ea97c; }
+    .required { color: #d72d30; }
+  </style>
+</head>
+<body>
+  <div class="form-container">
+    <h2>Freshdesk Connection</h2>
+    <p class="section-desc">Enter your Freshdesk credentials to configure the app.</p>
+
+    <div class="form-group">
+      <label for="freshdesk_subdomain">Freshdesk Subdomain <span class="required">*</span></label>
+      <p class="hint">Your subdomain from https://<strong>yourcompany</strong>.freshdesk.com</p>
+      <input type="text" id="freshdesk_subdomain" placeholder="yourcompany" />
+    </div>
+
+    <div class="form-group">
+      <label for="freshdesk_api_key">API Key <span class="required">*</span></label>
+      <p class="hint">Found under your profile icon > Profile Settings > Your API Key</p>
+      <input type="password" id="freshdesk_api_key" placeholder="Your Freshdesk API key" />
+    </div>
+
+    <hr class="divider" />
+
+    <h2>Webhook</h2>
+    <p class="section-desc">The webhook URL will be called whenever ticket events occur (create, update, new reply).</p>
+
+    <div class="form-group">
+      <label for="webhook_url">Webhook URL <span class="required">*</span></label>
+      <p class="hint">Your n8n webhook URL that will receive ticket event payloads</p>
+      <input type="text" id="webhook_url" placeholder="https://your-n8n.example.com/webhook/..." />
+    </div>
+
+    <hr class="divider" />
+
+    <h2>Group Filter</h2>
+    <p class="section-desc">Optionally restrict webhook triggers to tickets assigned to a specific group.</p>
+
+    <div class="inline-row" style="margin-bottom: 8px;">
+      <div class="form-group">
+        <label for="selected_group_id">Group</label>
+        <select id="selected_group_id" disabled>
+          <option value="">-- Load groups first --</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>&nbsp;</label>
+        <button id="load-groups-btn" class="btn btn-primary" onclick="handleLoadGroups()">Load Groups</button>
+      </div>
+    </div>
+    <p id="group-status" class="status-msg" style="display:none;"></p>
+    <p class="hint" style="margin-top: 4px;">Enter your subdomain and API key above, then click "Load Groups" to populate this dropdown.</p>
+
+    <!-- Hidden field to store group name -->
+    <input type="hidden" id="selected_group_name" value="" />
+  </div>
+
+  <script>
+    var freshdeskClient = null;
+
+    document.addEventListener("DOMContentLoaded", function () {
+      app.initialized().then(function (client) {
+        freshdeskClient = client;
+      });
+
+      // Update hidden group name when dropdown changes
+      document.getElementById("selected_group_id").addEventListener("change", function () {
+        var select = this;
+        var selectedOption = select.options[select.selectedIndex];
+        document.getElementById("selected_group_name").value =
+          select.value ? selectedOption.textContent : "";
+      });
+    });
+
+    function setStatus(msg, type) {
+      var el = document.getElementById("group-status");
+      el.textContent = msg;
+      el.className = "status-msg " + type;
+      el.style.display = msg ? "block" : "none";
+    }
+
+    function handleLoadGroups() {
+      var subdomain = document.getElementById("freshdesk_subdomain").value.trim();
+      var apiKey = document.getElementById("freshdesk_api_key").value.trim();
+
+      if (!subdomain) {
+        setStatus("Please enter your Freshdesk subdomain first.", "error");
+        return;
+      }
+      if (!apiKey) {
+        setStatus("Please enter your API key first.", "error");
+        return;
+      }
+
+      var btn = document.getElementById("load-groups-btn");
+      btn.disabled = true;
+      btn.textContent = "Loading...";
+      setStatus("Fetching groups from Freshdesk...", "loading");
+
+      freshdeskClient.request.invokeTemplate("getGroups", {
+        context: {
+          domain: subdomain,
+          api_key: apiKey
+        }
+      }).then(
+        function (data) {
+          btn.disabled = false;
+          btn.textContent = "Load Groups";
+          try {
+            var groups = JSON.parse(data.response);
+            var select = document.getElementById("selected_group_id");
+
+            // Clear existing options
+            select.innerHTML = "";
+
+            // Add default option
+            var defaultOpt = document.createElement("option");
+            defaultOpt.value = "";
+            defaultOpt.textContent = "All Groups (no filter)";
+            select.appendChild(defaultOpt);
+
+            if (Array.isArray(groups) && groups.length > 0) {
+              groups.forEach(function (group) {
+                var opt = document.createElement("option");
+                opt.value = String(group.id);
+                opt.textContent = group.name;
+                select.appendChild(opt);
+              });
+              select.disabled = false;
+              setStatus("Loaded " + groups.length + " group(s).", "success");
+            } else {
+              setStatus("No groups found in your Freshdesk account.", "error");
+            }
+          } catch (e) {
+            setStatus("Failed to parse groups response: " + e.message, "error");
+          }
+        },
+        function (error) {
+          btn.disabled = false;
+          btn.textContent = "Load Groups";
+          var msg = "Failed to load groups.";
+          if (error && error.status === 401) {
+            msg += " Invalid API key.";
+          } else if (error && error.status === 404) {
+            msg += " Subdomain not found.";
+          } else {
+            msg += " Check your subdomain and API key.";
+          }
+          setStatus(msg, "error");
+          console.error("Error loading groups:", error);
+        }
+      );
+    }
+
+    /* --- FDK iparams interface --- */
+
+    function getConfigs() {
+      return {
+        freshdesk_subdomain: document.getElementById("freshdesk_subdomain").value.trim(),
+        freshdesk_api_key: document.getElementById("freshdesk_api_key").value.trim(),
+        webhook_url: document.getElementById("webhook_url").value.trim(),
+        selected_group_id: document.getElementById("selected_group_id").value,
+        selected_group_name: document.getElementById("selected_group_name").value
+      };
+    }
+
+    function validate() {
+      var c = getConfigs();
+      var errors = {};
+
+      if (!c.freshdesk_subdomain) {
+        errors.freshdesk_subdomain = "Freshdesk subdomain is required.";
+      }
+      if (!c.freshdesk_api_key) {
+        errors.freshdesk_api_key = "Freshdesk API key is required.";
+      }
+      if (!c.webhook_url) {
+        errors.webhook_url = "Webhook URL is required.";
+      } else {
+        try { new URL(c.webhook_url); }
+        catch (e) { errors.webhook_url = "Please enter a valid URL."; }
+      }
+
+      return Object.keys(errors).length === 0
+        ? { success: true }
+        : { success: false, errors: errors };
+    }
+
+    function postConfigs() {
+      var result = validate();
+      if (result.success) {
+        return getConfigs();
+      }
+      throw new Error(JSON.stringify(result.errors));
+    }
+  </script>
+</body>
+</html>

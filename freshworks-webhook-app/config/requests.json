@@ -1,0 +1,26 @@
+{
+  "getGroups": {
+    "schema": {
+      "method": "GET",
+      "protocol": "https",
+      "host": "<%= context.domain %>.freshdesk.com",
+      "path": "/api/v2/groups",
+      "headers": {
+        "Authorization": "Basic <%= encode(context.api_key + ':X') %>",
+        "Content-Type": "application/json"
+      }
+    }
+  },
+  "sendWebhook": {
+    "schema": {
+      "method": "POST",
+      "protocol": "https",
+      "host": "<%= context.webhook_host %>",
+      "path": "<%= context.webhook_path %>",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": "<%= context.payload %>"
+    }
+  }
+}

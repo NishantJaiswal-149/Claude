@@ -1,0 +1,27 @@
+{
+  "platform-version": "2.3",
+  "product": {
+    "freshdesk": {
+      "events": {
+        "onTicketCreate": {
+          "handler": "onTicketCreate"
+        },
+        "onTicketUpdate": {
+          "handler": "onTicketUpdate"
+        },
+        "onConversationCreate": {
+          "handler": "onConversationCreate"
+        }
+      },
+      "requests": {
+        "getGroups": {},
+        "sendWebhook": {}
+      }
+    }
+  },
+  "whitelisted-domains": [],
+  "engines": {
+    "node": "18.x",
+    "fdk": "9.x"
+  }
+}

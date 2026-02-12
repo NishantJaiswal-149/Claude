@@ -1,0 +1,14 @@
+{
+  "name": "freshdesk-webhook-app",
+  "version": "1.0.0",
+  "description": "Freshdesk custom app that listens to ticket events and triggers a webhook (e.g. for n8n workflows)",
+  "main": "server/server.js",
+  "scripts": {
+    "test": "echo \"No tests specified\""
+  },
+  "engines": {
+    "node": "18.x",
+    "fdk": "9.x"
+  },
+  "license": "MIT"
+}
