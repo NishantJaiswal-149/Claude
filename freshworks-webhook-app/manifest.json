@@ -19,7 +19,6 @@
       }
     }
   },
-  "whitelisted-domains": [],
   "engines": {
     "node": "18.0.0",
     "fdk": "9.0.0"
