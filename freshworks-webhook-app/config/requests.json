@@ -19,8 +19,7 @@
       "path": "<%= context.webhook_path %>",
       "headers": {
         "Content-Type": "application/json"
-      },
-      "body": "<%= context.payload %>"
+      }
     }
   }
 }

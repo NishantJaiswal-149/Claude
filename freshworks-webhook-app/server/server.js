@@ -11,7 +11,7 @@
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 function parseWebhookUrl(url) {
-  var parsed = new URL(url);
+  const parsed = new URL(url);
   return {
     host: parsed.host,
     path: parsed.pathname + parsed.search
@@ -34,7 +34,7 @@ function shouldTrigger(ticketData, iparams) {
     return true;
   }
   // Check if the ticket's group_id matches the configured group
-  var ticketGroupId = ticketData.group_id || (ticketData.ticket && ticketData.ticket.group_id);
+  const ticketGroupId = ticketData.group_id || (ticketData.ticket && ticketData.ticket.group_id);
   return String(ticketGroupId) === String(iparams.selected_group_id);
 }
 
@@ -44,7 +44,7 @@ function sendWebhook($request, iparams, eventType, eventData) {
     return;
   }
 
-  var ticketData = eventData.ticket || eventData.conversation || eventData;
+  const ticketData = eventData.ticket || eventData.conversation || eventData;
 
   if (!shouldTrigger(ticketData, iparams)) {
     console.info(
@@ -54,21 +54,24 @@ function sendWebhook($request, iparams, eventType, eventData) {
     return;
   }
 
-  var urlParts = parseWebhookUrl(iparams.webhook_url);
-  var payload = buildPayload(eventType, eventData, iparams);
+  const urlParts = parseWebhookUrl(iparams.webhook_url);
+  const payload = buildPayload(eventType, eventData, iparams);
 
   $request.invokeTemplate("sendWebhook", {
     context: {
       webhook_host: urlParts.host,
-      webhook_path: urlParts.path,
-      payload: payload
-    }
+      webhook_path: urlParts.path
+    },
+    body: payload
   }).then(
     function () {
       console.info("Webhook sent successfully for event: " + eventType);
     },
     function (error) {
-      console.error("Webhook failed for event: " + eventType, error);
+      console.error("Webhook failed for event: " + eventType + ". Status: " +
+        (error && error.status ? error.status : "unknown") + ", Message: " +
+        (error && error.message ? error.message : JSON.stringify(error)));
+      throw error;
     }
   );
 }
@@ -107,7 +110,7 @@ exports = {
   onConversationCreate: function (payload) {
     // For conversations, the ticket info may be nested differently.
     // We still check group filtering against the parent ticket.
-    var data = payload.data;
+    const data = payload.data;
 
     // If conversation payload includes ticket data, use that for group check
     if (data.conversation && data.conversation.ticket_id && !data.ticket) {
