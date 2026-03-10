@@ -1420,6 +1420,54 @@ function getTomorrow() {
 }
 
 /* ═══════════════════════════════════════════════════
+   IMAGE URL — loremflickr with fashion-relevant keywords
+   Returns category-appropriate real photos (not random landscapes)
+═══════════════════════════════════════════════════ */
+function getImgKeyword(p) {
+  const name = p.name.toLowerCase();
+  const style = p.styles[0];
+
+  // Fitness / activewear — reliable Flickr tags
+  if (p.occasions.includes('fitness')) {
+    if (name.includes('shoe') || name.includes('running shoe')) return 'sneakers';
+    if (name.includes('legging') || name.includes('yoga')) return 'yoga';
+    return 'sportswear';
+  }
+
+  // Ethnic — Flickr has good saree/kurta coverage
+  if (style === 'ethnic') {
+    if (p.gender.includes('men') && !p.gender.includes('women')) {
+      if (name.includes('sherwani')) return 'sherwani';
+      return 'kurta';
+    }
+    if (name.includes('lehenga') || name.includes('bridal')) return 'lehenga';
+    if (name.includes('saree') || name.includes('silk'))     return 'saree';
+    return 'saree';   // kurti/kurta-set → show saree as closest ethnic-wear photo
+  }
+
+  // Fusion — use salwar which Flickr has
+  if (style === 'fusion') return 'salwar';
+
+  // Western — Flickr has tons of these
+  if (name.includes('suit'))    return 'suit';
+  if (name.includes('blazer'))  return 'blazer';
+  if (name.includes('jeans') || name.includes('denim')) return 'jeans';
+  if (name.includes('dress'))   return 'dress';
+  if (name.includes('shirt'))   return 'shirt';
+  if (name.includes('trouser') || name.includes('chino')) return 'trousers';
+  if (name.includes('hoodie') || name.includes('tee') || name.includes('t-shirt')) return 'tshirt';
+
+  // Minimal
+  if (style === 'minimal') return 'fashion,minimal';
+
+  return 'fashion';
+}
+
+function getImgUrl(p, w, h) {
+  return `https://loremflickr.com/${w}/${h}/${getImgKeyword(p)}?lock=${p.imgSeed}`;
+}
+
+/* ═══════════════════════════════════════════════════
    BUILD PRODUCT CARD
 ═══════════════════════════════════════════════════ */
 function buildProductCard(p) {
@@ -1440,7 +1488,7 @@ function buildProductCard(p) {
     <div class="prod-img-wrap">
       <div class="prod-img-placeholder" style="background:${bg}"></div>
       <img class="prod-img"
-           src="https://picsum.photos/seed/${p.imgSeed}/280/373"
+           src="${getImgUrl(p, 280, 373)}"
            loading="lazy" alt="${p.name}"
            onerror="this.style.display='none'">
       <div class="prod-badge ${p.bclass}">${p.badge}</div>
@@ -1662,7 +1710,7 @@ function openPDP(p) {
   document.getElementById('pdpImgWrap').style.background = gradients[p.styles[0]] || gradients.western;
   const img = document.getElementById('pdpImg');
   img.style.display = 'block';
-  img.src = `https://picsum.photos/seed/${p.imgSeed}/400/500`;
+  img.src = getImgUrl(p, 400, 500);
   img.onerror = function() { this.style.display = 'none'; };
 
   // Text fields
@@ -1760,7 +1808,7 @@ function openCart() {
   document.getElementById('cartItem').innerHTML = `
     <div class="cart-img-wrap">
       <div class="cart-img-bg" style="background:${bg}"></div>
-      <img class="cart-img" src="https://picsum.photos/seed/${item.imgSeed}/80/107" alt="" onerror="this.style.display='none'">
+      <img class="cart-img" src="${getImgUrl(item, 80, 107)}" alt="" onerror="this.style.display='none'">
     </div>
     <div class="cart-product-info">
       <div class="cart-brand">${item.brand}</div>
